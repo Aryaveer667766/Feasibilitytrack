@@ -148,9 +148,99 @@
     </div>
   </div>
   
-  <script>
+  <div id="client-modal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60" data-close-modal></div>
+    <div class="relative w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+      <h4 id="client-modal-title" class="text-xl font-bold text-white mb-6">Add Client</h4>
+      <form id="client-form" class="space-y-4">
+        <input type="hidden" id="client-id" />
+        <div>
+          <label class="text-sm font-medium text-gray-400">Name</label>
+          <input required id="client-name" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-400">Email</label>
+          <input required id="client-email" type="email" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-400">Company</label>
+          <input required id="client-company" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" data-close-modal class="px-4 py-2 rounded-md border border-gray-600 text-gray-300 hover:bg-gray-700 transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition">Save Client</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="freelancer-modal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60" data-close-modal></div>
+    <div class="relative w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+      <h4 id="freelancer-modal-title" class="text-xl font-bold text-white mb-6">Add Freelancer</h4>
+      <form id="freelancer-form" class="space-y-4">
+        <input type="hidden" id="freelancer-id" />
+        <div>
+          <label class="text-sm font-medium text-gray-400">Name</label>
+          <input required id="freelancer-name" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" data-close-modal class="px-4 py-2 rounded-md border border-gray-600 text-gray-300 hover:bg-gray-700 transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 transition">Save Freelancer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="project-modal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="absolute inset-0 bg-black/60" data-close-modal></div>
+    <div class="relative w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+      <h4 id="project-modal-title" class="text-xl font-bold text-white mb-6">Add Project</h4>
+      <form id="project-form" class="space-y-4">
+        <input type="hidden" id="project-id" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-400">Client</label>
+            <select required id="project-client" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Assigned Freelancer</label>
+            <select id="project-freelancer" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="">— Unassigned —</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Plan / Service</label>
+            <input required id="project-service" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Price (₹)</label>
+            <input required id="project-price" type="number" min="0" step="0.01" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Status</label>
+            <select required id="project-status" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option>New</option><option>In Progress</option><option>Pending Client Info</option><option>Internal Review</option><option>Delivered</option><option>Completed</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Date Added</label>
+            <input id="project-date" type="date" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <div class="text-xs text-gray-500 mt-1">Leave blank to use today's date.</div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" data-close-modal class="px-4 py-2 rounded-md border border-gray-600 text-gray-300 hover:bg-gray-700 transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition">Save Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+<script>
 /*
-  Feasibility Media — Enterprise Portal v3.0
+  Feasibility Media — Enterprise Portal v3.0 (Merged)
   Features: Mobile-first design, Login, User Profile, Audit Logs, CSV Reports, Settings.
 */
 (() => {
@@ -207,13 +297,64 @@
     // --- DOM REFS ---
     const sectionTitle = document.getElementById('section-title');
     const confirmModal = document.getElementById('confirm-modal');
-    // ... other refs for forms, modals etc. would be defined here
+    const clientModal = document.getElementById('client-modal');
+    const freelancerModal = document.getElementById('freelancer-modal');
+    const projectModal = document.getElementById('project-modal');
 
     // --- UI/UX HELPERS (Toasts, Modals, etc.) ---
-    function showToast(message, type = 'success') { /* ... same as before ... */ }
-    function openModal(modal) { /* ... same as before ... */ }
-    function closeModal(modal) { /* ... same as before ... */ }
-    function showConfirmModal({ title, text, onConfirm }) { /* ... same as before ... */ }
+    function showToast(message, type = 'success') {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    }
+
+    function openModal(modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('modal-open');
+    }
+    function closeModal(modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        if (!document.querySelector('.modal.flex')) {
+            document.body.classList.remove('modal-open');
+        }
+    }
+    function showConfirmModal({ title, text, onConfirm }) {
+        document.getElementById('confirm-modal-title').textContent = title;
+        document.getElementById('confirm-modal-text').textContent = text;
+        openModal(confirmModal);
+        
+        const confirmBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+        const handleConfirm = () => {
+            onConfirm();
+            cleanup();
+        };
+        const cleanup = () => {
+            closeModal(confirmModal);
+            confirmBtn.removeEventListener('click', handleConfirm);
+        };
+
+        confirmBtn.addEventListener('click', handleConfirm, { once: true });
+        cancelBtn.addEventListener('click', cleanup, { once: true });
+    }
+    document.querySelectorAll('[data-close-modal], #confirm-cancel-btn').forEach(el => {
+        el.addEventListener('click', (e) => closeModal(e.target.closest('.modal')));
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal').forEach(m => closeModal(m));
+        }
+    });
 
     // --- LOGGING ---
     function logActivity(message, type = 'info') {
@@ -273,9 +414,8 @@
     function renderPage(pageName) {
         const container = document.getElementById(pageName);
         if (!container) return;
-        // This acts like a simple router to load content on demand
         switch(pageName) {
-            case 'dashboard': renderDashboard(container); break;
+            case 'dashboard': renderDashboardPage(container); break;
             case 'projects': renderProjectsPage(container); break;
             case 'clients': renderClientsPage(container); break;
             case 'freelancers': renderFreelancersPage(container); break;
@@ -284,17 +424,119 @@
             case 'settings': renderSettingsPage(container); break;
         }
     }
+    
+    // --- PERSIST & RENDER ALL ---
+    function persistAll() {
+        saveData(LS_KEYS.clients, clients);
+        saveData(LS_KEYS.freelancers, freelancers);
+        saveData(LS_KEYS.projects, projects);
+    }
+    function renderCurrentPage() {
+        const activeSection = document.querySelector('.nav-link.active')?.dataset.section || 'dashboard';
+        renderPage(activeSection);
+    }
+    
+    // --- TEMPLATES & RENDER FUNCTIONS ---
+    
+    const statusColors = {
+        'New': 'bg-blue-900/50 text-blue-300 border border-blue-500/30',
+        'In Progress': 'bg-yellow-900/50 text-yellow-300 border border-yellow-500/30',
+        'Pending Client Info': 'bg-orange-900/50 text-orange-300 border border-orange-500/30',
+        'Internal Review': 'bg-purple-900/50 text-purple-300 border border-purple-500/30',
+        'Delivered': 'bg-teal-900/50 text-teal-300 border border-teal-500/30',
+        'Completed': 'bg-gray-700 text-gray-400 border border-gray-600'
+    };
+    
+    function renderDashboardPage(container) {
+        const totalRevenue = money(projects.reduce((s, p) => s + (Number(p.price) || 0), 0));
+        const activeProjects = projects.filter(p => p.status !== 'Completed').length;
+        const totalClients = clients.length;
+        
+        container.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fadeIn">
+              <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div><div class="text-sm text-gray-400">Total Revenue</div><div class="text-3xl font-bold text-white mt-1">${totalRevenue}</div></div>
+                  <div class="p-3 bg-green-900/50 rounded-lg"><svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                </div>
+              </div>
+              <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div><div class="text-sm text-gray-400">Active Projects</div><div class="text-3xl font-bold text-white mt-1">${activeProjects}</div></div>
+                  <div class="p-3 bg-yellow-900/50 rounded-lg"><svg class="w-6 h-6 text-yellow-400" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                </div>
+              </div>
+              <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
+                  <div><div class="text-sm text-gray-400">Total Clients</div><div class="text-3xl font-bold text-white mt-1">${totalClients}</div></div>
+                  <div class="p-3 bg-indigo-900/50 rounded-lg"><svg class="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m8-10a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mt-8">
+              <div class="lg:col-span-3 bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn" style="animation-delay: 0.1s;">
+                <h3 class="font-semibold text-white mb-4">Recent Activity</h3>
+                <div id="recent-activity"></div>
+              </div>
+              <div class="lg:col-span-2 bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn" style="animation-delay: 0.2s;">
+                <h3 class="font-semibold text-white mb-4">Projects by Status</h3>
+                <div id="status-chart" class="space-y-3"></div>
+              </div>
+            </div>`;
+            
+        const recentActivityEl = document.getElementById('recent-activity');
+        const sortedProjects = [...projects].sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0,5);
+        if (sortedProjects.length === 0) {
+            recentActivityEl.innerHTML = '<div class="text-gray-500 py-3 text-center">No recent projects.</div>';
+        } else {
+            const ul = document.createElement('ul');
+            ul.className = 'space-y-3';
+            sortedProjects.forEach(p => {
+                const client = clients.find(c => c.id === p.clientId);
+                ul.innerHTML += `<li class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div>
+                      <div class="font-medium text-gray-200">${escapeHtml(client?.name || '— Removed —')}</div>
+                      <div class="text-sm text-gray-400">${escapeHtml(p.service)}</div>
+                    </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${statusColors[p.status] || ''}">${p.status}</span>
+                </li>`;
+            });
+            recentActivityEl.appendChild(ul);
+        }
 
-    // Example: renderProjectsPage
+        const statusChartEl = document.getElementById('status-chart');
+        const statusCounts = projects.reduce((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {});
+        if (Object.keys(statusCounts).length === 0) {
+            statusChartEl.innerHTML = '<div class="text-gray-500 py-3 text-center">No project data for chart.</div>';
+        } else {
+            const total = projects.length;
+            Object.keys(statusColors).forEach(status => {
+                const count = statusCounts[status] || 0;
+                const percentage = total > 0 ? (count / total * 100).toFixed(1) : 0;
+                if(count > 0)
+                statusChartEl.innerHTML += `<div>
+                    <div class="flex justify-between items-center text-sm mb-1">
+                        <span class="font-medium text-gray-300">${status}</span>
+                        <span class="text-gray-400">${count} (${percentage}%)</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="${(statusColors[status] || '').split(' ')[0]} h-2 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                </div>`;
+            });
+        }
+    }
+    
+    // --- PROJECTS ---
     function renderProjectsPage(container) {
         container.innerHTML = `
             <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <input id="search-projects" type="search" placeholder="Search projects..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-72">
+              <input id="search-projects" type="search" placeholder="Search by service or client..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-72">
               <button id="add-project-btn" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 transition-all duration-200">+ Add New Project</button>
             </div>
             <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
               <table class="w-full text-sm text-left responsive-table">
-                <thead class="text-gray-400 border-b border-gray-700">
+                <thead class="text-gray-400 md:border-b md:border-gray-700">
                   <tr>
                     <th class="p-3 table-header-sortable" data-sort="clientName">Client ⇅</th>
                     <th class="p-3 table-header-sortable" data-sort="service">Service ⇅</th>
@@ -308,113 +550,521 @@
                 <tbody id="projects-tbody" class="md:divide-y md:divide-gray-700"></tbody>
               </table>
             </div>`;
-        // Attach event listeners for search, add, sort etc. after injecting HTML
-        renderProjects(); // This now populates the tbody
+        document.getElementById('add-project-btn').addEventListener('click', () => {
+            const form = projectModal.querySelector('form');
+            form.reset();
+            form['project-id'].value = '';
+            document.getElementById('project-modal-title').textContent = 'Add Project';
+            fillProjectFormOptions();
+            openModal(projectModal);
+        });
+        document.getElementById('search-projects').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = projects.filter(p => {
+                const client = clients.find(c => c.id === p.clientId);
+                return p.service.toLowerCase().includes(term) || (client && client.name.toLowerCase().includes(term));
+            });
+            renderProjects(filtered);
+        });
+        container.querySelectorAll('.table-header-sortable').forEach(header => {
+            header.addEventListener('click', () => {
+                const key = header.dataset.sort;
+                if (sortState.key === key) sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+                else { sortState.key = key; sortState.direction = 'asc'; }
+                renderProjects();
+            });
+        });
+        renderProjects();
     }
     
-    function renderProjects() { /* ... function to populate #projects-tbody ... */ }
-    
-    function renderReportsPage(container) {
-        container.innerHTML = `
-            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn">
-                <h3 class="text-xl font-bold text-white mb-4">Export Project Data</h3>
-                <p class="text-gray-400 mb-6">Select a date range to generate a CSV report of all projects within that period.</p>
-                <div class="flex flex-wrap gap-4 items-end mb-6">
-                    <div>
-                        <label for="report-start-date" class="text-sm font-medium text-gray-400">Start Date</label>
-                        <input type="date" id="report-start-date" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
-                    </div>
-                    <div>
-                        <label for="report-end-date" class="text-sm font-medium text-gray-400">End Date</label>
-                        <input type="date" id="report-end-date" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md">
-                    </div>
-                    <button id="export-csv-btn" class="px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 transition-all">Download CSV</button>
-                </div>
-                <div id="report-summary" class="text-gray-400"></div>
-            </div>`;
-
-        document.getElementById('export-csv-btn').addEventListener('click', exportProjectsToCSV);
-    }
-    
-    function exportProjectsToCSV() {
-        const startDate = document.getElementById('report-start-date').value;
-        const endDate = document.getElementById('report-end-date').value;
-        let filteredProjects = projects;
-        if (startDate) filteredProjects = filteredProjects.filter(p => new Date(p.dateAdded) >= new Date(startDate));
-        if (endDate) filteredProjects = filteredProjects.filter(p => new Date(p.dateAdded) <= new Date(endDate));
-
-        if (filteredProjects.length === 0) {
-            showToast('No projects found for the selected date range.', 'error');
-            return;
-        }
-
-        const headers = ['ProjectID', 'ClientName', 'ClientCompany', 'Service', 'Price', 'Status', 'FreelancerName', 'DateAdded'];
-        const rows = filteredProjects.map(p => {
-            const client = clients.find(c => c.id === p.clientId) || {};
-            const freelancer = freelancers.find(f => f.id === p.freelancerId) || {};
-            return [ p.id, client.name, client.company, p.service, p.price, p.status, freelancer.name, new Date(p.dateAdded).toISOString() ];
+    function renderProjects(filteredProjects = projects) {
+        const tbody = document.getElementById('projects-tbody');
+        tbody.innerHTML = '';
+        const sorted = [...filteredProjects].sort((a, b) => {
+            const valA = sortState.key === 'clientName' ? (clients.find(c => c.id === a.clientId)?.name || '') : a[sortState.key];
+            const valB = sortState.key === 'clientName' ? (clients.find(c => c.id === b.clientId)?.name || '') : b[sortState.key];
+            if (valA < valB) return sortState.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return sortState.direction === 'asc' ? 1 : -1;
+            return 0;
         });
         
-        let csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(','))].join('\n');
+        if (sorted.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">No projects found.</td></tr>`; return;
+        }
+
+        sorted.forEach(p => {
+            const client = clients.find(c => c.id === p.clientId);
+            const freelancer = freelancers.find(f => f.id === p.freelancerId);
+            const tr = document.createElement('tr');
+            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
+            tr.innerHTML = `
+                <td data-label="Client" class="p-3 font-medium">${escapeHtml(client?.name || '— Removed —')}</td>
+                <td data-label="Service" class="p-3 text-gray-300">${escapeHtml(p.service)}</td>
+                <td data-label="Freelancer" class="p-3 text-gray-400">${escapeHtml(freelancer?.name || '— Unassigned —')}</td>
+                <td data-label="Price" class="p-3 text-gray-300">${money(p.price)}</td>
+                <td data-label="Status" class="p-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${statusColors[p.status] || ''}">${p.status}</span></td>
+                <td data-label="Date Added" class="p-3 text-gray-400">${new Date(p.dateAdded).toLocaleDateString()}</td>
+                <td data-label="Actions" class="p-3 text-right">
+                  <div class="flex gap-2 justify-end actions-cell">
+                    <button data-id="${p.id}" class="edit-project px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
+                    <button data-id="${p.id}" class="delete-project px-3 py-1.5 bg-red-600/20 text-red-300 rounded-md text-xs font-semibold hover:bg-red-600/40">Delete</button>
+                  </div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
         
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Feasibility-Projects-Report-${new Date().toISOString().slice(0,10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        logActivity(`Exported ${filteredProjects.length} projects to CSV.`);
+        tbody.querySelectorAll('.edit-project').forEach(btn => btn.addEventListener('click', (e) => {
+            const p = projects.find(x => x.id === e.target.dataset.id);
+            if (!p) return showToast('Project not found.', 'error');
+            const form = projectModal.querySelector('form');
+            form.reset();
+            document.getElementById('project-modal-title').textContent = 'Edit Project';
+            fillProjectFormOptions();
+            form['project-id'].value = p.id; form['project-client'].value = p.clientId || ''; form['project-freelancer'].value = p.freelancerId || '';
+            form['project-service'].value = p.service; form['project-price'].value = p.price; form['project-status'].value = p.status;
+            form['project-date'].value = new Date(p.dateAdded).toISOString().slice(0,10);
+            openModal(projectModal);
+        }));
+        
+        tbody.querySelectorAll('.delete-project').forEach(btn => btn.addEventListener('click', (e) => {
+            const p = projects.find(x => x.id === e.target.dataset.id);
+            if (!p) return showToast('Project not found.', 'error');
+            showConfirmModal({
+                title: `Delete Project?`, text: `Are you sure you want to delete the project "${p.service}"?`,
+                onConfirm: () => {
+                    projects = projects.filter(x => x.id !== p.id);
+                    persistAll();
+                    renderProjects();
+                    logActivity(`Deleted project: ${p.service}`);
+                    showToast('Project deleted.');
+                }
+            });
+        }));
+    }
+    
+    function fillProjectFormOptions() {
+        const clientSelect = document.getElementById('project-client');
+        clientSelect.innerHTML = '<option value="">— Select client —</option>';
+        clients.forEach(c => clientSelect.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)} • ${escapeHtml(c.company)}</option>`);
+        const freelancerSelect = document.getElementById('project-freelancer');
+        freelancerSelect.innerHTML = '<option value="">— Unassigned —</option>';
+        freelancers.forEach(f => freelancerSelect.innerHTML += `<option value="${f.id}">${escapeHtml(f.name)}</option>`);
+    }
+    
+    projectModal.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const id = form['project-id'].value;
+        const projectData = {
+            clientId: form['project-client'].value, freelancerId: form['project-freelancer'].value, service: form['project-service'].value.trim(),
+            price: parseFloat(form['project-price'].value) || 0, status: form['project-status'].value,
+            dateAdded: form['project-date'].value ? new Date(form['project-date'].value).toISOString() : new Date().toISOString(),
+        };
+        if (!projectData.clientId || !projectData.service) return showToast('Client and Service are required.', 'error');
+        
+        if (id) {
+            const idx = projects.findIndex(p => p.id === id);
+            if (idx > -1) projects[idx] = { ...projects[idx], ...projectData };
+            logActivity(`Updated project: ${projectData.service}`);
+        } else {
+            projects.push({ id: uid(), ...projectData });
+            logActivity(`Created new project: ${projectData.service}`);
+        }
+        persistAll();
+        renderProjects();
+        closeModal(projectModal);
+        showToast(`Project ${id ? 'updated' : 'saved'} successfully!`);
+    });
+
+    // --- CLIENTS ---
+    function renderClientsPage(container) {
+        container.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <input id="search-clients" type="search" placeholder="Search by name or company..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none w-full sm:w-72">
+              <button id="add-client-btn" class="w-full sm:w-auto px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 transition-all duration-200">+ Add New Client</button>
+            </div>
+            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
+              <table class="w-full text-sm text-left responsive-table">
+                <thead class="text-gray-400 md:border-b md:border-gray-700"><tr>
+                    <th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Company</th><th class="p-3 text-right">Actions</th>
+                </tr></thead>
+                <tbody id="clients-tbody" class="md:divide-y md:divide-gray-700"></tbody>
+              </table>
+            </div>`;
+        document.getElementById('add-client-btn').addEventListener('click', () => {
+            const form = clientModal.querySelector('form');
+            form.reset();
+            form['client-id'].value = '';
+            document.getElementById('client-modal-title').textContent = 'Add Client';
+            openModal(clientModal);
+        });
+        document.getElementById('search-clients').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = clients.filter(c => c.name.toLowerCase().includes(term) || c.company.toLowerCase().includes(term));
+            renderClients(filtered);
+        });
+        renderClients();
+    }
+    
+    function renderClients(filteredClients = clients) {
+        const tbody = document.getElementById('clients-tbody');
+        tbody.innerHTML = '';
+        if (filteredClients.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No clients found.</td></tr>`; return;
+        }
+        filteredClients.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
+            tr.innerHTML = `
+                <td data-label="Name" class="p-3 font-medium">${escapeHtml(c.name)}</td>
+                <td data-label="Email" class="p-3 text-gray-400">${escapeHtml(c.email)}</td>
+                <td data-label="Company" class="p-3 text-gray-400">${escapeHtml(c.company)}</td>
+                <td data-label="Actions" class="p-3 text-right">
+                  <div class="flex gap-2 justify-end actions-cell">
+                    <button data-id="${c.id}" class="edit-client px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
+                    <button data-id="${c.id}" class="delete-client px-3 py-1.5 bg-red-600/20 text-red-300 rounded-md text-xs font-semibold hover:bg-red-600/40">Delete</button>
+                  </div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+        tbody.querySelectorAll('.edit-client').forEach(btn => btn.addEventListener('click', (e) => {
+            const client = clients.find(c => c.id === e.target.dataset.id);
+            if (!client) return showToast('Client not found.', 'error');
+            const form = clientModal.querySelector('form');
+            form.reset();
+            document.getElementById('client-modal-title').textContent = 'Edit Client';
+            form['client-id'].value = client.id; form['client-name'].value = client.name;
+            form['client-email'].value = client.email; form['client-company'].value = client.company;
+            openModal(clientModal);
+        }));
+        tbody.querySelectorAll('.delete-client').forEach(btn => btn.addEventListener('click', (e) => {
+            const client = clients.find(c => c.id === e.target.dataset.id);
+            if (!client) return showToast('Client not found.', 'error');
+            showConfirmModal({
+                title: `Delete Client: ${client.name}`,
+                text: 'This will also delete all associated projects. This action cannot be undone.',
+                onConfirm: () => {
+                    const associatedProjectCount = projects.filter(p => p.clientId === client.id).length;
+                    clients = clients.filter(c => c.id !== client.id);
+                    projects = projects.filter(p => p.clientId !== client.id);
+                    persistAll();
+                    renderClients();
+                    logActivity(`Deleted client: ${client.name} and ${associatedProjectCount} associated project(s)`);
+                    showToast('Client and projects deleted.');
+                }
+            });
+        }));
+    }
+    
+    clientModal.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const id = form['client-id'].value;
+        const clientData = {
+            name: form['client-name'].value.trim(), email: form['client-email'].value.trim(), company: form['client-company'].value.trim(),
+        };
+        if (id) {
+            const idx = clients.findIndex(c => c.id === id);
+            if (idx > -1) clients[idx] = { ...clients[idx], ...clientData };
+            logActivity(`Updated client: ${clientData.name}`);
+        } else {
+            clients.push({ id: uid(), ...clientData });
+            logActivity(`Created new client: ${clientData.name}`);
+        }
+        persistAll();
+        renderClients();
+        closeModal(clientModal);
+        showToast(`Client ${id ? 'updated' : 'saved'} successfully!`);
+    });
+
+    // --- FREELANCERS ---
+    function renderFreelancersPage(container) {
+        container.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <input id="search-freelancers" type="search" placeholder="Search freelancers by name..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none w-full sm:w-72">
+              <button id="add-freelancer-btn" class="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-md shadow-lg hover:bg-teal-700 transition-all duration-200">+ Add New Freelancer</button>
+            </div>
+            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
+              <table class="w-full text-sm text-left responsive-table">
+                <thead class="text-gray-400 md:border-b md:border-gray-700">
+                  <tr><th class="p-3">Name</th><th class="p-3 text-right">Actions</th></tr>
+                </thead>
+                <tbody id="freelancers-tbody" class="md:divide-y md:divide-gray-700"></tbody>
+              </table>
+            </div>`;
+        document.getElementById('add-freelancer-btn').addEventListener('click', () => {
+            const form = freelancerModal.querySelector('form');
+            form.reset();
+            form['freelancer-id'].value = '';
+            document.getElementById('freelancer-modal-title').textContent = 'Add Freelancer';
+            openModal(freelancerModal);
+        });
+        document.getElementById('search-freelancers').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = freelancers.filter(f => f.name.toLowerCase().includes(term));
+            renderFreelancers(filtered);
+        });
+        renderFreelancers();
     }
 
-    function renderLogsPage(container) {
-        container.innerHTML = `
-            <div class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-gray-400 border-b border-gray-700"><tr><th class="p-3">Timestamp</th><th class="p-3">Action</th></tr></thead>
-                    <tbody id="logs-tbody" class="divide-y divide-gray-700"></tbody>
-                </table>
-            </div>`;
-        renderLogs();
-    }
-    
-    function renderLogs() {
-        const tbody = document.getElementById('logs-tbody');
-        tbody.innerHTML = logs.map(log => `
-            <tr class="animate-fadeIn">
-                <td class="p-3 text-gray-400 whitespace-nowrap">${new Date(log.timestamp).toLocaleString()}</td>
-                <td class="p-3">${escapeHtml(log.message)}</td>
-            </tr>
-        `).join('');
-    }
-    
-    function renderSettingsPage(container) {
-        container.innerHTML = `
-            <div class="space-y-8">
-                <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn">
-                    <h3 class="text-xl font-bold text-white mb-2">Application Settings</h3>
-                    <p class="text-gray-400 mb-6">Manage general application settings.</p>
-                    <div class="flex items-center gap-4">
-                        <label class="font-medium">Theme</label>
-                        <span class="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md">Dark Mode (Default)</span>
+    function renderFreelancers(filteredFreelancers = freelancers) {
+        const tbody = document.getElementById('freelancers-tbody');
+        tbody.innerHTML = '';
+        if (filteredFreelancers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-gray-500">No freelancers found.</td></tr>`; return;
+        }
+        filteredFreelancers.forEach(f => {
+            const tr = document.createElement('tr');
+            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
+            tr.innerHTML = `
+                <td data-label="Name" class="p-3 font-medium">${escapeHtml(f.name)}</td>
+                <td data-label="Actions" class="p-3 text-right">
+                    <div class="flex gap-2 justify-end actions-cell">
+                        <button data-id="${f.id}" class="edit-freelancer px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
+                        <button data-id="${f.id}" class="delete-freelancer px-3 py-1.5 bg-red-600/20 text-red-300 rounded-md text-xs font-semibold hover:bg-red-600/40">Delete</button>
                     </div>
-                </div>
-                <div class="bg-gray-900 rounded-2xl p-6 border border-red-500/30 animate-fadeIn">
-                    <h3 class="text-xl font-bold text-red-400 mb-2">Danger Zone</h3>
-                    <p class="text-gray-400 mb-6">These actions are permanent and cannot be undone.</p>
-                    <button id="clear-all-data-btn" class="px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 transition-all">Clear All Portal Data</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+        tbody.querySelectorAll('.edit-freelancer').forEach(btn => btn.addEventListener('click', (e) => {
+            const f = freelancers.find(x => x.id === e.target.dataset.id);
+            if (!f) return showToast('Freelancer not found.', 'error');
+            const form = freelancerModal.querySelector('form');
+            form.reset();
+            document.getElementById('freelancer-modal-title').textContent = 'Edit Freelancer';
+            form['freelancer-id'].value = f.id;
+            form['freelancer-name'].value = f.name;
+            openModal(freelancerModal);
+        }));
+        tbody.querySelectorAll('.delete-freelancer').forEach(btn => btn.addEventListener('click', (e) => {
+            const f = freelancers.find(x => x.id === e.target.dataset.id);
+            if (!f) return showToast('Freelancer not found.', 'error');
+            showConfirmModal({
+                title: `Delete Freelancer: ${f.name}`,
+                text: 'Projects will be unassigned, not deleted. Are you sure?',
+                onConfirm: () => {
+                    freelancers = freelancers.filter(x => x.id !== f.id);
+                    projects = projects.map(p => p.freelancerId === f.id ? { ...p, freelancerId: '' } : p);
+                    persistAll();
+                    renderFreelancers();
+                    logActivity(`Deleted freelancer: ${f.name} and unassigned their projects.`);
+                    showToast('Freelancer deleted.');
+                }
+            });
+        }));
+    }
+
+    freelancerModal.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const id = form['freelancer-id'].value;
+        const name = form['freelancer-name'].value.trim();
+        if (id) {
+            const idx = freelancers.findIndex(f => f.id === id);
+            if (idx > -1) freelancers[idx].name = name;
+            logActivity(`Updated freelancer: ${name}`);
+        } else {
+            freelancers.push({ id: uid(), name });
+            logActivity(`Created new freelancer: ${name}`);
+        }
+        persistAll();
+        renderFreelancers();
+        closeModal(freelancerModal);
+        showToast(`Freelancer ${id ? 'updated' : 'saved'} successfully!`);
+    });
+
+    // --- REPORTS ---
+    function renderReportsPage(container) {
+        container.innerHTML = `
+            <div class="space-y-6">
+                <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn">
+                    <h3 class="text-lg font-semibold text-white mb-4">Download Reports</h3>
+                    <p class="text-gray-400 mb-6">Export your portal data as CSV files for use in spreadsheets or other applications.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="dl-projects-csv" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 transition-all duration-200">Download Projects CSV</button>
+                        <button id="dl-clients-csv" class="px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 transition-all duration-200">Download Clients CSV</button>
+                        <button id="dl-freelancers-csv" class="px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-md shadow-lg hover:bg-teal-700 transition-all duration-200">Download Freelancers CSV</button>
+                    </div>
                 </div>
             </div>`;
         
+        document.getElementById('dl-projects-csv').addEventListener('click', () => {
+            const dataToExport = projects.map(p => {
+                const client = clients.find(c => c.id === p.clientId);
+                const freelancer = freelancers.find(f => f.id === p.freelancerId);
+                return {
+                    ID: p.id,
+                    ClientName: client?.name || 'N/A',
+                    ClientCompany: client?.company || 'N/A',
+                    Service: p.service,
+                    Price: p.price,
+                    Status: p.status,
+                    Freelancer: freelancer?.name || 'Unassigned',
+                    DateAdded: new Date(p.dateAdded).toLocaleDateString()
+                };
+            });
+            downloadCSV(dataToExport, 'projects_report.csv');
+            logActivity('Downloaded projects report');
+            showToast('Projects report generated!');
+        });
+
+        document.getElementById('dl-clients-csv').addEventListener('click', () => {
+            downloadCSV(clients, 'clients_report.csv');
+            logActivity('Downloaded clients report');
+            showToast('Clients report generated!');
+        });
+        document.getElementById('dl-freelancers-csv').addEventListener('click', () => {
+            downloadCSV(freelancers, 'freelancers_report.csv');
+            logActivity('Downloaded freelancers report');
+            showToast('Freelancers report generated!');
+        });
+    }
+
+    function downloadCSV(data, filename) {
+        if (data.length === 0) {
+            showToast('No data available to export.', 'info');
+            return;
+        }
+        const headers = Object.keys(data[0]);
+        const csvRows = [
+            headers.join(','),
+            ...data.map(row => headers.map(header => JSON.stringify(row[header])).join(','))
+        ];
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    
+    // --- LOGS ---
+    function renderLogsPage(container) {
+        container.innerHTML = `
+            <div class="flex items-center justify-between gap-4 mb-6">
+              <p class="text-gray-400">Showing the last ${logs.length} entries.</p>
+              <button id="clear-logs-btn" class="px-4 py-2 bg-red-800 text-white font-semibold rounded-md hover:bg-red-700 transition">Clear All Logs</button>
+            </div>
+            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
+              <table class="w-full text-sm text-left responsive-table">
+                <thead class="text-gray-400 md:border-b md:border-gray-700">
+                  <tr><th class="p-3">Timestamp</th><th class="p-3">Message</th></tr>
+                </thead>
+                <tbody id="logs-tbody" class="md:divide-y md:divide-gray-700"></tbody>
+              </table>
+            </div>`;
+        
+        document.getElementById('clear-logs-btn').addEventListener('click', () => {
+            showConfirmModal({
+                title: 'Clear Audit Log?',
+                text: 'Are you sure you want to permanently delete all log entries?',
+                onConfirm: () => {
+                    logs = [];
+                    saveData(LS_KEYS.logs, logs);
+                    renderLogs();
+                    showToast('Audit log cleared.');
+                }
+            });
+        });
+        renderLogs();
+    }
+
+    function renderLogs() {
+        const tbody = document.getElementById('logs-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-gray-500">No log entries found.</td></tr>`; return;
+        }
+        logs.forEach(log => {
+            const tr = document.createElement('tr');
+            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
+            const logDate = new Date(log.timestamp);
+            tr.innerHTML = `
+                <td data-label="Timestamp" class="p-3 text-gray-400">${logDate.toLocaleString()}</td>
+                <td data-label="Message" class="p-3">${escapeHtml(log.message)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- SETTINGS ---
+    function renderSettingsPage(container) {
+        container.innerHTML = `
+            <div class="space-y-8 max-w-2xl mx-auto">
+                <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn">
+                    <h3 class="text-lg font-semibold text-white mb-2">Data Management</h3>
+                    <p class="text-gray-400 mb-6">Export all portal data to a single JSON file for backup, or import a file to restore your data.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="export-data-btn" class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 transition">Export All Data</button>
+                        <label class="cursor-pointer px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-md shadow-lg hover:bg-gray-700 transition">
+                            Import Data
+                            <input type="file" id="import-data-input" class="hidden" accept=".json">
+                        </label>
+                    </div>
+                </div>
+                <div class="bg-gray-900 rounded-2xl p-6 border border-red-500/30 animate-fadeIn" style="animation-delay: 0.1s;">
+                    <h3 class="text-lg font-semibold text-red-400 mb-2">Danger Zone</h3>
+                    <p class="text-gray-400 mb-6">This action is irreversible. All clients, freelancers, projects, and logs will be permanently deleted.</p>
+                    <button id="clear-all-data-btn" class="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 transition">Clear All Portal Data</button>
+                </div>
+            </div>`;
+
+        document.getElementById('export-data-btn').addEventListener('click', () => {
+            const allData = {
+                clients: loadData(LS_KEYS.clients),
+                freelancers: loadData(LS_KEYS.freelancers),
+                projects: loadData(LS_KEYS.projects),
+                logs: loadData(LS_KEYS.logs)
+            };
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `feasibility-media-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            logActivity('Exported all portal data.');
+            showToast('Data exported successfully!');
+        });
+        
+        document.getElementById('import-data-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.clients && data.projects && data.freelancers) {
+                        showConfirmModal({
+                            title: 'Import Data?',
+                            text: 'This will overwrite all current data in the portal. Are you sure you wish to proceed?',
+                            onConfirm: () => {
+                                saveData(LS_KEYS.clients, data.clients);
+                                saveData(LS_KEYS.freelancers, data.freelancers);
+                                saveData(LS_KEYS.projects, data.projects);
+                                saveData(LS_KEYS.logs, data.logs || []);
+                                logActivity('Imported data from file.');
+                                showToast('Data imported successfully! Reloading...');
+                                setTimeout(() => window.location.reload(), 1500);
+                            }
+                        });
+                    } else { throw new Error('Invalid file structure.'); }
+                } catch (err) { showToast('Error reading or parsing file.', 'error'); }
+            };
+            reader.readAsText(file);
+            e.target.value = ''; // Reset input
+        });
+
         document.getElementById('clear-all-data-btn').addEventListener('click', () => {
             showConfirmModal({
-                title: 'Clear All Data?',
-                text: 'This will permanently delete all projects, clients, freelancers, and logs. Are you absolutely sure?',
+                title: 'DELETE ALL DATA?',
+                text: 'This is your final confirmation. All portal data will be lost forever. Are you absolutely sure?',
                 onConfirm: () => {
                     Object.values(LS_KEYS).forEach(key => localStorage.removeItem(key));
-                    clients = [], freelancers = [], projects = [], logs = [];
-                    showToast('All application data has been cleared.', 'info');
-                    renderPage(document.querySelector('.nav-link.active').dataset.section);
+                    showToast('All data cleared. Reloading...', 'info');
+                    setTimeout(() => window.location.reload(), 1500);
                 }
             });
         });
