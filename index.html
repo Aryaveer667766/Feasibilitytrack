@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Feasibility Media — Internal Admin Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Small extra styling for modal backdrop scroll lock and transition */
+    .modal-open { overflow: hidden; }
+    .fade { transition: opacity .18s ease, transform .18s ease; }
+    .hidden-by-default { display: none; }
+  </style>
+</head>
+<body class="antialiased bg-gray-100 text-gray-800">
+
+  <div id="app" class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-72 bg-gray-800 text-gray-100 flex-shrink-0">
+      <div class="p-6 border-b border-gray-700">
+        <div class="flex items-center gap-3">
+          <!-- Logo -->
+          <div class="w-12 h-12 rounded-md bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none">
+              <path d="M3 12H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 3L19 7.5L12 12L5 7.5L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="font-semibold text-lg">Feasibility Media</h1>
+            <p class="text-xs text-gray-300">Internal Admin Portal</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav -->
+      <nav class="p-4 space-y-1">
+        <button data-section="dashboard" class="nav-link w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700 active:bg-gray-700">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M3 13h8V3H3v10zM13 21h8V11h-8v10zM13 3v6h8V3h-8zM3 21h8v-8H3v8z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button data-section="projects" class="nav-link w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Projects</span>
+        </button>
+
+        <button data-section="clients" class="nav-link w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Clients</span>
+        </button>
+
+        <button data-section="freelancers" class="nav-link w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M12 12c2.5 0 4.5-2 4.5-4.5S14.5 3 12 3 7.5 5 7.5 7.5 9.5 12 12 12zM4.5 21v-1.5a4.5 4.5 0 014.5-4.5h6a4.5 4.5 0 014.5 4.5V21" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Freelancers</span>
+        </button>
+      </nav>
+
+      <div class="mt-auto p-4 border-t border-gray-700">
+        <div class="text-xs text-gray-400">Logged in as</div>
+        <div class="mt-1 text-sm">Admin • Feasibility</div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 p-6">
+      <!-- Top bar -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 id="section-title" class="text-2xl font-semibold">Dashboard</h2>
+        <div class="flex items-center gap-3">
+          <div class="text-sm text-gray-600">LocalStorage demo • ₹ currency</div>
+        </div>
+      </div>
+
+      <!-- Sections -->
+      <section id="dashboard" class="section">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-white rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-gray-500">Total Revenue</div>
+                <div id="total-revenue" class="text-2xl font-bold mt-1">₹0.00</div>
+              </div>
+              <div class="p-3 bg-green-50 rounded-md">
+                <svg class="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-gray-500">Active Projects</div>
+                <div id="active-projects" class="text-2xl font-bold mt-1">0</div>
+              </div>
+              <div class="p-3 bg-yellow-50 rounded-md">
+                <svg class="w-6 h-6 text-yellow-600" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-gray-500">Total Clients</div>
+                <div id="total-clients" class="text-2xl font-bold mt-1">0</div>
+              </div>
+              <div class="p-3 bg-indigo-50 rounded-md">
+                <svg class="w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold">Recent Activity</h3>
+            <div class="text-sm text-gray-500">Last 5 projects</div>
+          </div>
+          <div id="recent-activity">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="section hidden-by-default">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold">Projects</h3>
+          <div>
+            <button id="add-project-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700">+ Add New Project</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-left text-gray-600 border-b">
+              <tr>
+                <th class="py-2">Client</th>
+                <th class="py-2">Service</th>
+                <th class="py-2">Freelancer</th>
+                <th class="py-2">Price</th>
+                <th class="py-2">Status</th>
+                <th class="py-2">Date Added</th>
+                <th class="py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projects-tbody" class="divide-y">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="clients" class="section hidden-by-default">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold">Clients</h3>
+          <div>
+            <button id="add-client-btn" class="px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700">+ Add New Client</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-left text-gray-600 border-b">
+              <tr>
+                <th class="py-2">Name</th>
+                <th class="py-2">Email</th>
+                <th class="py-2">Company</th>
+                <th class="py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clients-tbody" class="divide-y">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="freelancers" class="section hidden-by-default">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold">Freelancers</h3>
+          <div>
+            <button id="add-freelancer-btn" class="px-4 py-2 bg-teal-600 text-white rounded-md shadow hover:bg-teal-700">+ Add New Freelancer</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-left text-gray-600 border-b">
+              <tr>
+                <th class="py-2">Name</th>
+                <th class="py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="freelancers-tbody" class="divide-y">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <!-- Client Modal -->
+  <div id="client-modal" class="fixed inset-0 z-40 hidden fade items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" data-close-modal></div>
+    <div class="relative w-full max-w-md bg-white rounded-xl shadow p-6 z-50">
+      <h4 id="client-modal-title" class="text-lg font-semibold mb-3">Add Client</h4>
+      <form id="client-form" class="space-y-3">
+        <input type="hidden" id="client-id" />
+        <div>
+          <label class="text-sm text-gray-600">Name</label>
+          <input required id="client-name" class="w-full mt-1 px-3 py-2 border rounded-md" />
+        </div>
+        <div>
+          <label class="text-sm text-gray-600">Email</label>
+          <input required id="client-email" type="email" class="w-full mt-1 px-3 py-2 border rounded-md" />
+        </div>
+        <div>
+          <label class="text-sm text-gray-600">Company</label>
+          <input required id="client-company" class="w-full mt-1 px-3 py-2 border rounded-md" />
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" data-close-modal class="px-4 py-2 rounded-md border">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md">Save Client</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Freelancer Modal -->
+  <div id="freelancer-modal" class="fixed inset-0 z-40 hidden fade items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" data-close-modal></div>
+    <div class="relative w-full max-w-md bg-white rounded-xl shadow p-6 z-50">
+      <h4 id="freelancer-modal-title" class="text-lg font-semibold mb-3">Add Freelancer</h4>
+      <form id="freelancer-form" class="space-y-3">
+        <input type="hidden" id="freelancer-id" />
+        <div>
+          <label class="text-sm text-gray-600">Name</label>
+          <input required id="freelancer-name" class="w-full mt-1 px-3 py-2 border rounded-md" />
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" data-close-modal class="px-4 py-2 rounded-md border">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-md">Save Freelancer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Project Modal -->
+  <div id="project-modal" class="fixed inset-0 z-40 hidden fade items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" data-close-modal></div>
+    <div class="relative w-full max-w-2xl bg-white rounded-xl shadow p-6 z-50">
+      <h4 id="project-modal-title" class="text-lg font-semibold mb-3">Add Project</h4>
+      <form id="project-form" class="space-y-3">
+        <input type="hidden" id="project-id" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-sm text-gray-600">Client</label>
+            <select required id="project-client" class="w-full mt-1 px-3 py-2 border rounded-md"></select>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">Assigned Freelancer</label>
+            <select id="project-freelancer" class="w-full mt-1 px-3 py-2 border rounded-md">
+              <option value="">— Unassigned —</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-sm text-gray-600">Plan / Service</label>
+            <input required id="project-service" class="w-full mt-1 px-3 py-2 border rounded-md" />
+          </div>
+
+          <div>
+            <label class="text-sm text-gray-600">Price (₹)</label>
+            <input required id="project-price" type="number" min="0" step="0.01" class="w-full mt-1 px-3 py-2 border rounded-md" />
+          </div>
+
+          <div>
+            <label class="text-sm text-gray-600">Status</label>
+            <select required id="project-status" class="w-full mt-1 px-3 py-2 border rounded-md">
+              <option>New</option>
+              <option>In Progress</option>
+              <option>Pending Client Info</option>
+              <option>Internal Review</option>
+              <option>Delivered</option>
+              <option>Completed</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-sm text-gray-600">Date Added</label>
+            <input id="project-date" type="date" class="w-full mt-1 px-3 py-2 border rounded-md" />
+            <div class="text-xs text-gray-400 mt-1">Automatically set when creating; editable for editing only.</div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" data-close-modal class="px-4 py-2 rounded-md border">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md">Save Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+/*
+  Feasibility Media — Single-file Admin Portal
+  All data stored in localStorage:
+    - clients: array of { id, name, email, company }
+    - freelancers: array of { id, name }
+    - projects: array of { id, clientId, freelancerId, service, price, status, dateAdded }
+
+  Features: full CRUD, modals, dashboard KPIs, recent activity, deletion cascade for client -> projects
+*/
+
+(() => {
+  // --- Utilities ---
+  const LS_KEYS = { clients: 'fm_clients', freelancers: 'fm_freelancers', projects: 'fm_projects' };
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+  function saveData(key, arr) {
+    localStorage.setItem(key, JSON.stringify(arr || []));
+  }
+  function loadData(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) {
+      console.error('loadData error', e);
+      return [];
+    }
+  }
+
+  function money(num) {
+    const n = Number(num) || 0;
+    return n.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+  }
+
+  function formatDateISO(dateISO) {
+    if (!dateISO) return '';
+    const d = new Date(dateISO);
+    return d.toLocaleString();
+  }
+
+  // --- State ---
+  let clients = loadData(LS_KEYS.clients) || [];
+  let freelancers = loadData(LS_KEYS.freelancers) || [];
+  let projects = loadData(LS_KEYS.projects) || [];
+
+  // Ensure types
+  clients = Array.isArray(clients) ? clients : [];
+  freelancers = Array.isArray(freelancers) ? freelancers : [];
+  projects = Array.isArray(projects) ? projects : [];
+
+  // --- DOM refs ---
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sectionTitle = document.getElementById('section-title');
+
+  // Dashboard refs
+  const totalRevenueEl = document.getElementById('total-revenue');
+  const activeProjectsEl = document.getElementById('active-projects');
+  const totalClientsEl = document.getElementById('total-clients');
+  const recentActivityEl = document.getElementById('recent-activity');
+
+  // Clients refs
+  const clientsTbody = document.getElementById('clients-tbody');
+  const addClientBtn = document.getElementById('add-client-btn');
+  const clientModal = document.getElementById('client-modal');
+  const clientForm = document.getElementById('client-form');
+  const clientModalTitle = document.getElementById('client-modal-title');
+  const clientIdInput = document.getElementById('client-id');
+  const clientNameInput = document.getElementById('client-name');
+  const clientEmailInput = document.getElementById('client-email');
+  const clientCompanyInput = document.getElementById('client-company');
+
+  // Freelancers refs
+  const freelancersTbody = document.getElementById('freelancers-tbody');
+  const addFreelancerBtn = document.getElementById('add-freelancer-btn');
+  const freelancerModal = document.getElementById('freelancer-modal');
+  const freelancerForm = document.getElementById('freelancer-form');
+  const freelancerModalTitle = document.getElementById('freelancer-modal-title');
+  const freelancerIdInput = document.getElementById('freelancer-id');
+  const freelancerNameInput = document.getElementById('freelancer-name');
+
+  // Projects refs
+  const projectsTbody = document.getElementById('projects-tbody');
+  const addProjectBtn = document.getElementById('add-project-btn');
+  const projectModal = document.getElementById('project-modal');
+  const projectForm = document.getElementById('project-form');
+  const projectModalTitle = document.getElementById('project-modal-title');
+  const projectIdInput = document.getElementById('project-id');
+  const projectClientSelect = document.getElementById('project-client');
+  const projectFreelancerSelect = document.getElementById('project-freelancer');
+  const projectServiceInput = document.getElementById('project-service');
+  const projectPriceInput = document.getElementById('project-price');
+  const projectStatusSelect = document.getElementById('project-status');
+  const projectDateInput = document.getElementById('project-date');
+
+  // --- Navigation logic ---
+  function setActiveSection(name) {
+    sections.forEach(s => {
+      if (s.id === name) s.classList.remove('hidden-by-default'); else s.classList.add('hidden-by-default');
+    });
+    navLinks.forEach(n => {
+      if (n.dataset.section === name) {
+        n.classList.add('bg-gray-700');
+      } else {
+        n.classList.remove('bg-gray-700');
+      }
+    });
+    // Update header title
+    const pretty = name[0].toUpperCase() + name.slice(1);
+    sectionTitle.textContent = pretty;
+    // Rerender dashboard metrics when switching to dashboard
+    if (name === 'dashboard') renderDashboard();
+  }
+
+  navLinks.forEach(n => {
+    n.addEventListener('click', () => setActiveSection(n.dataset.section));
+  });
+
+  // Start on dashboard
+  setActiveSection('dashboard');
+
+  // --- Modal helpers ---
+  function openModal(modal) {
+    modal.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+    // small timeout for fade-in class usage
+    setTimeout(() => { modal.classList.add('flex'); }, 10);
+  }
+  function closeModal(modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.classList.remove('modal-open');
+    // clear form errors if any
+  }
+
+  // Close on backdrop or data-close-modal
+  document.querySelectorAll('[data-close-modal]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const modal = e.target.closest('.fixed') ;
+      if (modal) closeModal(modal);
+      else {
+        // find any open modal and close
+        document.querySelectorAll('.fixed').forEach(m => { if (!m.classList.contains('hidden')) closeModal(m); });
+      }
+    });
+  });
+
+  // Also listen for Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.fixed').forEach(m => { if (!m.classList.contains('hidden')) closeModal(m); });
+    }
+  });
+
+  // --- Data operations & rendering ---
+
+  function persistAll() {
+    saveData(LS_KEYS.clients, clients);
+    saveData(LS_KEYS.freelancers, freelancers);
+    saveData(LS_KEYS.projects, projects);
+  }
+
+  // Clients
+  function renderClients() {
+    clientsTbody.innerHTML = '';
+    if (clients.length === 0) {
+      clientsTbody.innerHTML = '<tr><td colspan="4" class="py-4 text-gray-500">No clients added yet.</td></tr>';
+      return;
+    }
+    clients.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-3">${escapeHtml(c.name)}</td>
+        <td class="py-3">${escapeHtml(c.email)}</td>
+        <td class="py-3">${escapeHtml(c.company)}</td>
+        <td class="py-3">
+          <div class="flex gap-2">
+            <button data-id="${c.id}" class="edit-client px-3 py-1 bg-yellow-100 text-yellow-700 rounded-md">Edit</button>
+            <button data-id="${c.id}" class="delete-client px-3 py-1 bg-red-100 text-red-700 rounded-md">Delete</button>
+          </div>
+        </td>
+      `;
+      clientsTbody.appendChild(tr);
+    });
+
+    // Attach handlers
+    document.querySelectorAll('.edit-client').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const client = clients.find(x => x.id === id);
+        if (!client) return alert('Client not found.');
+        clientModalTitle.textContent = 'Edit Client';
+        clientIdInput.value = client.id;
+        clientNameInput.value = client.name;
+        clientEmailInput.value = client.email;
+        clientCompanyInput.value = client.company;
+        openModal(clientModal);
+      });
+    });
+
+    document.querySelectorAll('.delete-client').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const client = clients.find(x => x.id === id);
+        if (!client) return alert('Client not found.');
+        if (!confirm('Delete client "'+client.name+'"? This will also delete all projects associated with this client.')) return;
+        // Delete client
+        clients = clients.filter(x => x.id !== id);
+        // Delete projects associated
+        const beforeCount = projects.length;
+        projects = projects.filter(p => p.clientId !== id);
+        persistAll();
+        renderClients();
+        renderProjects();
+        renderDashboard();
+      });
+    });
+  }
+
+  // Freelancers
+  function renderFreelancers() {
+    freelancersTbody.innerHTML = '';
+    if (freelancers.length === 0) {
+      freelancersTbody.innerHTML = '<tr><td colspan="2" class="py-4 text-gray-500">No freelancers added yet.</td></tr>';
+      return;
+    }
+    freelancers.forEach(f => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-3">${escapeHtml(f.name)}</td>
+        <td class="py-3">
+          <div class="flex gap-2">
+            <button data-id="${f.id}" class="edit-freelancer px-3 py-1 bg-yellow-100 text-yellow-700 rounded-md">Edit</button>
+            <button data-id="${f.id}" class="delete-freelancer px-3 py-1 bg-red-100 text-red-700 rounded-md">Delete</button>
+          </div>
+        </td>
+      `;
+      freelancersTbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.edit-freelancer').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const f = freelancers.find(x => x.id === id);
+        if (!f) return alert('Freelancer not found.');
+        freelancerModalTitle.textContent = 'Edit Freelancer';
+        freelancerIdInput.value = f.id;
+        freelancerNameInput.value = f.name;
+        openModal(freelancerModal);
+      });
+    });
+
+    document.querySelectorAll('.delete-freelancer').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const f = freelancers.find(x => x.id === id);
+        if (!f) return alert('Freelancer not found.');
+        if (!confirm('Delete freelancer "'+f.name+'"? This will NOT delete associated projects but will unassign them.')) return;
+        freelancers = freelancers.filter(x => x.id !== id);
+        // Unassign any projects
+        projects = projects.map(p => p.freelancerId === id ? ({ ...p, freelancerId: '' }) : p);
+        persistAll();
+        renderFreelancers();
+        renderProjects();
+        renderDashboard();
+      });
+    });
+  }
+
+  // Projects
+  const statusColorMap = {
+    'New': 'bg-blue-100 text-blue-700',
+    'In Progress': 'bg-yellow-100 text-yellow-800',
+    'Pending Client Info': 'bg-orange-100 text-orange-800',
+    'Internal Review': 'bg-purple-100 text-purple-800',
+    'Delivered': 'bg-teal-100 text-teal-800',
+    'Completed': 'bg-gray-100 text-gray-700'
+  };
+
+  function renderProjects() {
+    projectsTbody.innerHTML = '';
+    if (projects.length === 0) {
+      projectsTbody.innerHTML = '<tr><td colspan="7" class="py-4 text-gray-500">No projects added yet.</td></tr>';
+      return;
+    }
+    // show latest first
+    const sorted = [...projects].sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+    sorted.forEach(p => {
+      const client = clients.find(c => c.id === p.clientId);
+      const freelancer = freelancers.find(f => f.id === p.freelancerId);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-3">${escapeHtml(client ? client.name : '— Client removed —')}</td>
+        <td class="py-3">${escapeHtml(p.service)}</td>
+        <td class="py-3">${escapeHtml(freelancer ? freelancer.name : (p.freelancerId ? '— Freelancer removed —' : '— Unassigned —'))}</td>
+        <td class="py-3">${money(p.price)}</td>
+        <td class="py-3"><span class="inline-flex items-center px-2 py-1 rounded text-xs ${statusColorMap[p.status] || 'bg-gray-100 text-gray-700'}">${p.status}</span></td>
+        <td class="py-3">${new Date(p.dateAdded).toLocaleString()}</td>
+        <td class="py-3">
+          <div class="flex gap-2">
+            <button data-id="${p.id}" class="edit-project px-3 py-1 bg-yellow-100 text-yellow-700 rounded-md">Edit</button>
+            <button data-id="${p.id}" class="delete-project px-3 py-1 bg-red-100 text-red-700 rounded-md">Delete</button>
+          </div>
+        </td>
+      `;
+      projectsTbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.edit-project').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const p = projects.find(x => x.id === id);
+        if (!p) return alert('Project not found.');
+        projectModalTitle.textContent = 'Edit Project';
+        projectIdInput.value = p.id;
+        fillProjectFormOptions(); // ensure selects populated
+        projectClientSelect.value = p.clientId || '';
+        projectFreelancerSelect.value = p.freelancerId || '';
+        projectServiceInput.value = p.service;
+        projectPriceInput.value = p.price;
+        projectStatusSelect.value = p.status;
+        // set date input in YYYY-MM-DD
+        const d = new Date(p.dateAdded);
+        projectDateInput.value = d.toISOString().slice(0,10);
+        openModal(projectModal);
+      });
+    });
+
+    document.querySelectorAll('.delete-project').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const p = projects.find(x => x.id === id);
+        if (!p) return alert('Project not found.');
+        if (!confirm('Delete project "'+p.service+'" ?')) return;
+        projects = projects.filter(x => x.id !== id);
+        persistAll();
+        renderProjects();
+        renderDashboard();
+      });
+    });
+  }
+
+  // Dashboard rendering
+  function renderDashboard() {
+    // Total revenue = sum of prices
+    const total = projects.reduce((s, p) => s + (Number(p.price) || 0), 0);
+    totalRevenueEl.textContent = money(total.toFixed(2));
+    // Active projects: status != Completed
+    const active = projects.filter(p => p.status !== 'Completed').length;
+    activeProjectsEl.textContent = active;
+    totalClientsEl.textContent = clients.length;
+
+    // Recent Activity: 5 most recently added projects
+    recentActivityEl.innerHTML = '';
+    const sorted = [...projects].sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0,5);
+    if (sorted.length === 0) {
+      recentActivityEl.innerHTML = '<div class="text-gray-500 py-3">No recent projects.</div>';
+      return;
+    }
+    const ul = document.createElement('ul');
+    ul.className = 'space-y-2';
+    sorted.forEach(p => {
+      const client = clients.find(c => c.id === p.clientId);
+      const li = document.createElement('li');
+      li.className = 'flex items-center justify-between p-2 border rounded-md';
+      li.innerHTML = `
+        <div>
+          <div class="font-medium">${escapeHtml(client ? client.name : '— Client removed —')}</div>
+          <div class="text-sm text-gray-600">${escapeHtml(p.service)}</div>
+        </div>
+        <div>
+          <div class="text-sm"><span class="inline-flex items-center px-2 py-1 rounded text-xs ${statusColorMap[p.status] || 'bg-gray-100 text-gray-700'}">${p.status}</span></div>
+        </div>
+      `;
+      ul.appendChild(li);
+    });
+    recentActivityEl.appendChild(ul);
+  }
+
+  // --- Forms handling ---
+  // Clients
+  addClientBtn.addEventListener('click', () => {
+    clientModalTitle.textContent = 'Add Client';
+    clientIdInput.value = '';
+    clientForm.reset();
+    openModal(clientModal);
+  });
+
+  clientForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = clientIdInput.value;
+    const name = clientNameInput.value.trim();
+    const email = clientEmailInput.value.trim();
+    const company = clientCompanyInput.value.trim();
+    if (!name || !email || !company) return alert('Please fill all fields.');
+    if (id) {
+      // edit
+      const idx = clients.findIndex(c => c.id === id);
+      if (idx === -1) return alert('Client not found.');
+      clients[idx] = { ...clients[idx], name, email, company };
+    } else {
+      // add
+      clients.push({ id: uid(), name, email, company });
+    }
+    persistAll();
+    renderClients();
+    renderProjects();
+    renderDashboard();
+    closeModal(clientModal);
+  });
+
+  // Freelancers
+  addFreelancerBtn.addEventListener('click', () => {
+    freelancerModalTitle.textContent = 'Add Freelancer';
+    freelancerIdInput.value = '';
+    freelancerForm.reset();
+    openModal(freelancerModal);
+  });
+
+  freelancerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = freelancerIdInput.value;
+    const name = freelancerNameInput.value.trim();
+    if (!name) return alert('Please enter a name.');
+    if (id) {
+      const idx = freelancers.findIndex(f => f.id === id);
+      if (idx === -1) return alert('Freelancer not found.');
+      freelancers[idx] = { ...freelancers[idx], name };
+    } else {
+      freelancers.push({ id: uid(), name });
+    }
+    persistAll();
+    renderFreelancers();
+    renderProjects();
+    renderDashboard();
+    closeModal(freelancerModal);
+  });
+
+  // Projects
+  addProjectBtn.addEventListener('click', () => {
+    projectModalTitle.textContent = 'Add Project';
+    projectIdInput.value = '';
+    projectForm.reset();
+    projectDateInput.value = ''; // will be auto-filled on save
+    fillProjectFormOptions();
+    openModal(projectModal);
+  });
+
+  function fillProjectFormOptions() {
+    // Populate client select
+    projectClientSelect.innerHTML = '<option value="">— Select client —</option>';
+    clients.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name + (c.company ? ' • '+c.company : '');
+      projectClientSelect.appendChild(opt);
+    });
+    // Populate freelancer select
+    projectFreelancerSelect.innerHTML = '<option value="">— Unassigned —</option>';
+    freelancers.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.name;
+      projectFreelancerSelect.appendChild(opt);
+    });
+  }
+
+  projectForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = projectIdInput.value;
+    const clientId = projectClientSelect.value;
+    const freelancerId = projectFreelancerSelect.value;
+    const service = projectServiceInput.value.trim();
+    const price = parseFloat(projectPriceInput.value) || 0;
+    const status = projectStatusSelect.value;
+    const dateInputVal = projectDateInput.value;
+
+    if (!clientId) return alert('Please select a client.');
+    if (!service) return alert('Please enter a service.');
+    if (price < 0) return alert('Price must be positive.');
+
+    let dateAdded = dateInputVal ? new Date(dateInputVal + 'T00:00:00').toISOString() : new Date().toISOString();
+
+    if (id) {
+      const idx = projects.findIndex(p => p.id === id);
+      if (idx === -1) return alert('Project not found.');
+      projects[idx] = { ...projects[idx], clientId, freelancerId, service, price, status, dateAdded };
+    } else {
+      projects.push({ id: uid(), clientId, freelancerId, service, price, status, dateAdded });
+    }
+
+    persistAll();
+    renderProjects();
+    renderDashboard();
+    closeModal(projectModal);
+  });
+
+  // --- Helpers & initial render ---
+  function escapeHtml(unsafe) {
+    if (unsafe == null) return '';
+    return String(unsafe)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  // Initial render
+  renderClients();
+  renderFreelancers();
+  renderProjects();
+  renderDashboard();
+
+  // For convenience: ensure selects in project form are updated when clients/freelancers change
+  // We'll refresh options when opening the project form (handled above)
+
+  // Expose minimal functions for debugging (optional)
+  window._fm = {
+    get clients(){ return clients; },
+    get freelancers(){ return freelancers; },
+    get projects(){ return projects; },
+    save: persistAll
+  };
+
+})();
+</script>
+</body>
+</html>
