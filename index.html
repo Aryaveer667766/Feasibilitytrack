@@ -30,7 +30,7 @@
     .table-header-sortable:hover { color: var(--text-primary); }
     
     /* Priority & Payment Tags */
-    .priority-dot { width: 10px; height: 10px; border-radius: 99px; }
+    .priority-dot { display: inline-block; width: 10px; height: 10px; border-radius: 99px; margin-right: 4px; }
     .payment-tag { font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.5px; }
     .payment-tag.paid { background-color: #166534; color: #bbf7d0; } /* green-800 / green-200 */
     .payment-tag.pending { background-color: #a16207; color: #fef08a; } /* yellow-800 / yellow-200 */
@@ -47,7 +47,9 @@
       .responsive-table td:last-child { border-bottom: none; }
       .responsive-table td::before { content: attr(data-label); font-weight: 600; text-align: left; margin-right: 1rem; color: var(--text-secondary); }
       .responsive-table td .actions-cell { width: 100%; }
-      .responsive-table td .avatar-cell { justify-content: flex-end; }
+      /* Adjust alignment for priority dot */
+      .responsive-table td[data-label="Priority"]::before { margin-right: auto;}
+      .responsive-table td[data-label="Priority"] { justify-content: flex-end;}
     }
     
     /* Animations */
@@ -137,8 +139,7 @@
                 <div class="relative">
                     <button id="user-menu-btn" class="flex items-center gap-2">
                         <span class="font-semibold text-sm">Admin</span>
-                        <img class="w-8 h-8 rounded-full" src="admin.jpg" alt="Admin"/>
-                    </button>
+                        <img class="w-8 h-8 rounded-full" src="admin.jpg" alt="Admin"/> </button>
                     <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-md shadow-lg hidden">
                         <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">Logout</a>
                     </div>
@@ -256,7 +257,7 @@
           <div>
             <label class="text-sm font-medium text-gray-400">Status</label>
             <select required id="project-status" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-              <option>New</option><option>In Progress</option><option>Pending Client Info</option><option>Internal Review</option><option>Delivered</option><option>Completed</option>
+              <option>Planning</option><option>Design</option><option>Development</option><option>Testing</option><option>Client Review</option><option>Revisions</option><option>Delivered</option><option>Completed</option>
             </select>
           </div>
           <div>
@@ -302,7 +303,7 @@
               <div>
                 <label class="block text-gray-400 text-xs font-medium">Status</label>
                 <select id="project-details-status" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                  <option>New</option><option>In Progress</option><option>Pending Client Info</option><option>Internal Review</option><option>Delivered</option><option>Completed</option>
+                  <option>Planning</option><option>Design</option><option>Development</option><option>Testing</option><option>Client Review</option><option>Revisions</option><option>Delivered</option><option>Completed</option>
                 </select>
               </div>
               <div>
@@ -375,14 +376,11 @@
 
 <script>
 /*
-  Feasibility Media — Enterprise Portal v3.3 (Realistic)
-  Features: Login, Auth, All previous features +
-  - Financial Layer (Payment Status)
-  - Deeper Data Models (Phone, Specialty, Priority, Deadline)
-  - Full Project Details Modal (Brief, Sub-tasks, Notes)
-  - Actionable Dashboard (Outstanding Revenue, Deadlines)
-  - Advanced Simulation (Realistic Dates, Statuses, Assignments)
-  - UI Polish (Avatars, Login Screen Details)
+  Feasibility Media — Enterprise Portal v3.5 (No Chat, Granular Statuses)
+  - Removed Chat System
+  - Implemented Granular Project Statuses
+  - Simulation auto-creates and assigns freelancers
+  - Removed client/freelancer avatars, updated admin avatar path
 */
 (() => {
   // --- APP INITIALIZATION & AUTH ---
@@ -426,58 +424,57 @@
   function initializeApp() {
     // --- UTILITIES & STATE ---
     const LS_KEYS = {
-        clients: 'fm_clients_v3.3',
-        freelancers: 'fm_freelancers_v3.3',
-        projects: 'fm_projects_v3.3',
-        logs: 'fm_logs_v3.3',
-        lastAutoAdd: 'fm_last_auto_add_v3.3'
+        clients: 'fm_clients_v3.5', freelancers: 'fm_freelancers_v3.5',
+        projects: 'fm_projects_v3.5', logs: 'fm_logs_v3.5',
+        lastAutoAdd: 'fm_last_auto_add_v3.5' // No chat key
     };
     function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-    function saveData(key, arr) { localStorage.setItem(key, JSON.stringify(arr || [])); }
+    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data || [])); }
     function loadData(key) { try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : []; } catch (e) { return []; } }
     function money(n) { return (Number(n) || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }); }
     function escapeHtml(u) { return u == null ? '' : String(u).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
     function formatDate(dateStr) { return dateStr ? new Date(dateStr).toISOString().slice(0,10) : ''; }
     function niceDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleDateString() : '—'; }
-    function getAvatar(idOrEmail) { return `https://i.pravatar.cc/40?u=${idOrEmail}`; }
+    // Removed getAvatar function
 
-    let clients = loadData(LS_KEYS.clients), freelancers = loadData(LS_KEYS.freelancers), projects = loadData(LS_KEYS.projects), logs = loadData(LS_KEYS.logs);
+    let clients = loadData(LS_KEYS.clients), freelancers = loadData(LS_KEYS.freelancers), projects = loadData(LS_KEYS.projects), logs = loadData(LS_KEYS.logs); // Removed chats
     let sortState = { key: 'dateAdded', direction: 'desc' };
-    let currentProjectDetailsId = null; // Track which project is open in the details modal
+    let currentProjectDetailsId = null; // Removed currentChatContactId
 
-    // --- DATA DEFAULTS (for realistic simulation & new entries) ---
-    const newClientDefaults = () => ({
-        phone: '',
-        dateJoined: new Date().toISOString()
-    });
-    const newFreelancerDefaults = () => ({
-        email: '',
-        specialty: ''
-    });
+    // --- DATA DEFAULTS ---
+    const newClientDefaults = () => ({ phone: '', dateJoined: new Date().toISOString() });
+    const newFreelancerDefaults = () => ({ email: '', specialty: '' });
     const newProjectDefaults = () => ({
-        paymentStatus: 'Pending',
-        deadline: '',
-        priority: 'Medium',
-        brief: '',
-        subtasks: [],
-        notes: []
+        paymentStatus: 'Pending', deadline: '', priority: 'Medium',
+        brief: '', subtasks: [], notes: []
     });
 
     // --- AUTO-ADD SIMULATION ---
-    const MOCK_PLAN_TYPES = [
+    const MOCK_PLAN_TYPES = [ /* ... same as before ... */
         { baseName: 'Starter', basePrice: 5000, tasks: ['Keyword Research', '1 Blog Post Draft', 'Client Review'] },
         { baseName: 'Growth', basePrice: 10000, tasks: ['Keyword Research', 'On-Page SEO Audit', '2 Blog Post Drafts', 'Client Review'] },
         { baseName: 'Pro', basePrice: 20000, tasks: ['Full SEO Strategy', 'Keyword Research', '4 Blog Posts', 'Link Building Outreach', 'Final Report'] }
     ];
-    const MOCK_DURATIONS = [
+    const MOCK_DURATIONS = [ /* ... same as before ... */
         { name: '1 Month', multiplier: 1 }, { name: '3 Months', multiplier: 3 },
         { name: '6 Months', multiplier: 6 }, { name: '1 Year', multiplier: 12 }
     ];
-    const MOCK_FIRST_NAMES = ['Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan', 'Saanvi', 'Aadhya', 'Kiara', 'Diya', 'Pari', 'Ananya', 'Riya', 'Aarohi'];
-    const MOCK_LAST_NAMES = ['Sharma', 'Verma', 'Gupta', 'Singh', 'Patel', 'Kumar', 'Das', 'Reddy', 'Yadav', 'Jain'];
-    const MOCK_COMPANY_PREFIX = ['Apex', 'Global', 'Dynamic', 'Quantum', 'Stellar', 'Synergy', 'Zenith', 'Nexus', 'Future'];
-    const MOCK_COMPANY_SUFFIX = ['Solutions', 'Tech', 'Media', 'Group', 'Innovations', 'Labs', 'Digital', 'Enterprises'];
-    const MOCK_PHONES = ['987XXXXX01', '991XXXXX02', '982XXXXX03', '973XXXXX04', '964XXXXX05', '955XXXXX06'];
+    const MOCK_FIRST_NAMES = [ /* ... same as before ... */
+        'Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan', 'Saanvi', 'Aadhya', 'Kiara', 'Diya', 'Pari', 'Ananya', 'Riya', 'Aarohi'
+    ];
+    const MOCK_LAST_NAMES = [ /* ... same as before ... */
+        'Sharma', 'Verma', 'Gupta', 'Singh', 'Patel', 'Kumar', 'Das', 'Reddy', 'Yadav', 'Jain'
+    ];
+    const MOCK_COMPANY_PREFIX = [ /* ... same as before ... */
+        'Apex', 'Global', 'Dynamic', 'Quantum', 'Stellar', 'Synergy', 'Zenith', 'Nexus', 'Future'
+    ];
+    const MOCK_COMPANY_SUFFIX = [ /* ... same as before ... */
+        'Solutions', 'Tech', 'Media', 'Group', 'Innovations', 'Labs', 'Digital', 'Enterprises'
+    ];
+    const MOCK_PHONES = [ /* ... same as before ... */
+        '987XXXXX01', '991XXXXX02', '982XXXXX03', '973XXXXX04', '964XXXXX05', '955XXXXX06'
+    ];
+    const MOCK_SPECIALTIES = ['SEO Writer', 'Content Strategist', 'PPC Specialist', 'Video Editor', 'Web Developer', 'Graphic Designer'];
 
     function getRandomElement(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
     function randomDateInPast(days) {
@@ -486,94 +483,124 @@
         return past.toISOString();
     }
 
-    function generateRandomClient(date) {
+    function generateRandomClient(date) { /* ... same as before ... */
         const firstName = getRandomElement(MOCK_FIRST_NAMES);
         const lastName = getRandomElement(MOCK_LAST_NAMES);
         const name = `${firstName} ${lastName}`;
         const company = `${getRandomElement(MOCK_COMPANY_PREFIX)} ${getRandomElement(MOCK_COMPANY_SUFFIX)}`;
         const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 100)}@${company.toLowerCase().replace(/ /g, '')}.com`;
-        return {
-            id: uid(), name, email, company,
-            phone: getRandomElement(MOCK_PHONES),
-            dateJoined: date
-        };
+        return { id: uid(), name, email, company, phone: getRandomElement(MOCK_PHONES), dateJoined: date };
     }
 
-    function generateRandomProject(clientId, dateAdded, existingFreelancers) {
+    // New function to generate random freelancer
+    function generateRandomFreelancer() {
+        const firstName = getRandomElement(MOCK_FIRST_NAMES);
+        const lastName = getRandomElement(MOCK_LAST_NAMES);
+        const name = `${firstName} ${lastName}`;
+        const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 500)}@freelance.com`;
+        const specialty = getRandomElement(MOCK_SPECIALTIES);
+        return { id: uid(), name, email, specialty };
+    }
+
+    // Updated function to generate project, now takes freelancerId
+    function generateRandomProject(clientId, dateAdded, freelancerId) {
         const planType = getRandomElement(MOCK_PLAN_TYPES);
         const duration = getRandomElement(MOCK_DURATIONS);
         const serviceName = `${planType.baseName} - ${duration.name}`;
         const finalPrice = planType.basePrice * duration.multiplier;
         const deadline = new Date(dateAdded);
-        deadline.setDate(deadline.getDate() + 30 * duration.multiplier);
+        deadline.setDate(deadline.getDate() + 30 * duration.multiplier); // Simple deadline calc
         
         let status, paymentStatus, notes = [];
         const today = new Date();
+        const daysSinceStart = (today - new Date(dateAdded)) / (1000 * 60 * 60 * 24);
+        const totalDurationDays = duration.multiplier * 30;
+
+        // Assign status based on age relative to duration/deadline
         if (deadline < today) {
             status = 'Completed';
-            paymentStatus = 'Paid';
+            paymentStatus = (Math.random() > 0.1) ? 'Paid' : 'Overdue'; // Mostly paid if completed
             notes.push({ id: uid(), text: 'Project signed off and completed.', timestamp: deadline.toISOString() });
-        } else {
-            const daysSinceStart = (today - new Date(dateAdded)) / (1000 * 60 * 60 * 24);
-            status = daysSinceStart < 7 ? 'New' : 'In Progress';
+        } else if (daysSinceStart < 7) {
+            status = 'Planning';
             paymentStatus = 'Pending';
             notes.push({ id: uid(), text: 'Project kicked off.', timestamp: new Date(dateAdded).toISOString() });
+        } else if (daysSinceStart < totalDurationDays * 0.3) {
+            status = getRandomElement(['Design', 'Development']);
+            paymentStatus = 'Pending';
+        } else if (daysSinceStart < totalDurationDays * 0.6) {
+            status = getRandomElement(['Development', 'Testing']);
+            paymentStatus = (Math.random() > 0.7) ? 'Paid' : 'Pending'; // Higher chance of being paid mid-way
+        } else if (daysSinceStart < totalDurationDays * 0.9) {
+            status = getRandomElement(['Client Review', 'Revisions']);
+            paymentStatus = (Math.random() > 0.5) ? 'Paid' : 'Pending';
+        } else {
+            status = 'Delivered';
+            paymentStatus = (Math.random() > 0.3) ? 'Paid' : 'Pending';
         }
 
         const subtasks = planType.tasks.map(taskText => ({ id: uid(), text: taskText, done: (status === 'Completed') }));
-        const freelancerId = existingFreelancers.length > 0 ? getRandomElement(existingFreelancers).id : '';
 
         return {
-            id: uid(), clientId, freelancerId,
-            service: serviceName,
-            price: finalPrice,
-            status, paymentStatus,
-            priority: getRandomElement(['Low', 'Medium', 'High']),
-            dateAdded: dateAdded,
-            deadline: deadline.toISOString(),
+            id: uid(), clientId, freelancerId, // Assign passed freelancerId
+            service: serviceName, price: finalPrice, status, paymentStatus,
+            priority: getRandomElement(['Low', 'Medium', 'High']), dateAdded: dateAdded, deadline: deadline.toISOString(),
             brief: `Full-service package for ${serviceName}. Key goals: Increase organic traffic and improve brand presence.`,
             subtasks, notes
         };
     }
 
-    function checkAndRunAutoAdd(currentClients, currentProjects, currentLogs, currentFreelancers) {
-        const AUTO_ADD_INTERVAL_MS = 1.5 * 60 * 60 * 1000; // 1.5 hours
+    // Updated simulation check
+    function checkAndRunAutoAdd(currentData) {
+        const AUTO_ADD_INTERVAL_MS = 1.5 * 60 * 60 * 1000;
         const lastRun = localStorage.getItem(LS_KEYS.lastAutoAdd);
         const now = Date.now();
 
         if (!lastRun || (now - parseInt(lastRun, 10)) > AUTO_ADD_INTERVAL_MS) {
             console.log('Running auto-add simulation...');
             const date = randomDateInPast(90);
+            
+            // Create Client
             const newClient = generateRandomClient(date);
-            currentClients.push(newClient);
+            currentData.clients.push(newClient);
+
+            // Create Freelancer
+            const newFreelancer = generateRandomFreelancer();
+            currentData.freelancers.push(newFreelancer);
+
+            // Create Project and assign the new freelancer
+            const newProject = generateRandomProject(newClient.id, date, newFreelancer.id);
+            currentData.projects.push(newProject);
             
-            const newProject = generateRandomProject(newClient.id, date, currentFreelancers);
-            currentProjects.push(newProject);
-            
+            // Log activities
             const logTime = new Date().toISOString();
-            currentLogs.unshift({ id: uid(), message: `[AUTO] New client added: ${newClient.name} (${newClient.company})`, type: 'info', timestamp: logTime });
-            currentLogs.unshift({ id: uid(), message: `[AUTO] New project added: ${newProject.service} for ${newClient.name}`, type: 'info', timestamp: logTime });
+            currentData.logs.unshift({ id: uid(), message: `[AUTO] New client added: ${newClient.name}`, type: 'info', timestamp: logTime });
+            currentData.logs.unshift({ id: uid(), message: `[AUTO] New freelancer added: ${newFreelancer.name}`, type: 'info', timestamp: logTime });
+            currentData.logs.unshift({ id: uid(), message: `[AUTO] New project added: ${newProject.service} for ${newClient.name}, assigned to ${newFreelancer.name}`, type: 'info', timestamp: logTime });
             
-            saveData(LS_KEYS.clients, currentClients);
-            saveData(LS_KEYS.projects, currentProjects);
-            saveData(LS_KEYS.logs, currentLogs);
+            // Save all data
+            Object.keys(currentData).forEach(key => {
+                if (LS_KEYS[key]) { // Ensure key exists before saving
+                    saveData(LS_KEYS[key], currentData[key]);
+                }
+            });
             localStorage.setItem(LS_KEYS.lastAutoAdd, now.toString());
             
-            return { didRun: true, clients: currentClients, projects: currentProjects, logs: currentLogs };
+            currentData.didRun = true;
+            return currentData;
         }
-        return { didRun: false, clients, projects, logs };
+        return { ...currentData, didRun: false };
     }
 
-    // --- DOM REFS ---
-    const sectionTitle = document.getElementById('section-title');
+    // --- DOM REFS & UI HELPERS ---
     const confirmModal = document.getElementById('confirm-modal');
     const clientModal = document.getElementById('client-modal');
     const freelancerModal = document.getElementById('freelancer-modal');
     const projectModal = document.getElementById('project-modal');
     const projectDetailsModal = document.getElementById('project-details-modal');
+    // Removed chatModal ref
 
-    // --- UI/UX HELPERS (Toasts, Modals, etc.) ---
-    function showToast(message, type = 'success') {
+    function showToast(message, type = 'success') { /* ... same as before ... */
         const toastContainer = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -585,72 +612,48 @@
             toast.addEventListener('transitionend', () => toast.remove());
         }, 3000);
     }
-
-    // Run auto-add check *before* anything else
-    const autoAddResult = checkAndRunAutoAdd(clients, projects, logs, freelancers);
-    if (autoAddResult.didRun) {
-        clients = autoAddResult.clients;
-        projects = autoAddResult.projects;
-        logs = autoAddResult.logs;
-        setTimeout(() => showToast('New client activity simulated!', 'info'), 500);
+    
+    // Run auto-add check
+    const autoData = checkAndRunAutoAdd({ clients, projects, logs, freelancers }); // Removed chats
+    if (autoData.didRun) {
+        ({ clients, projects, logs, freelancers } = autoData); // Removed chats
+        setTimeout(() => showToast('New client & freelancer activity simulated!', 'info'), 500);
     }
-
-    function openModal(modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.classList.add('modal-open');
-    }
-    function closeModal(modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        if (!document.querySelector('.modal.flex')) {
-            document.body.classList.remove('modal-open');
-        }
-    }
-    function showConfirmModal({ title, text, onConfirm }) {
+    
+    // Modals and other UI helpers remain the same...
+    function openModal(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('modal-open'); }
+    function closeModal(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); if (!document.querySelector('.modal.flex')) { document.body.classList.remove('modal-open'); } }
+    function showConfirmModal({ title, text, onConfirm }) { /* ... same ... */
         document.getElementById('confirm-modal-title').textContent = title;
         document.getElementById('confirm-modal-text').textContent = text;
         openModal(confirmModal);
-        
         const confirmBtn = document.getElementById('confirm-ok-btn');
         const cancelBtn = document.getElementById('confirm-cancel-btn');
-
         const handleConfirm = () => { onConfirm(); cleanup(); };
-        const cleanup = () => {
-            closeModal(confirmModal);
-            confirmBtn.removeEventListener('click', handleConfirm);
-        };
-
+        const cleanup = () => { closeModal(confirmModal); confirmBtn.removeEventListener('click', handleConfirm); };
         confirmBtn.addEventListener('click', handleConfirm, { once: true });
         cancelBtn.addEventListener('click', cleanup, { once: true });
     }
-    
-    // Close modal listeners
-    document.querySelectorAll('[data-close-modal], #confirm-cancel-btn').forEach(el => {
-        el.addEventListener('click', (e) => closeModal(e.target.closest('.modal')));
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal').forEach(m => closeModal(m));
-        }
-    });
+    document.querySelectorAll('[data-close-modal], #confirm-cancel-btn').forEach(el => { el.addEventListener('click', (e) => closeModal(e.target.closest('.modal'))); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.querySelectorAll('.modal').forEach(m => closeModal(m)); } });
 
     // --- LOGGING ---
-    function logActivity(message, type = 'info') {
+    function logActivity(message, type = 'info') { /* ... same ... */
       logs.unshift({ id: uid(), message, type, timestamp: new Date().toISOString() });
-      if (logs.length > 100) logs.pop(); // Keep logs from getting too large
+      if (logs.length > 100) logs.pop();
       saveData(LS_KEYS.logs, logs);
-      if (document.getElementById('logs-tbody')) renderLogs(); // Live update if on logs page
+      if (document.getElementById('logs-tbody')) renderLogs();
     }
-
+    
     // --- NAVIGATION & LAYOUT ---
     const sidebar = document.getElementById('sidebar');
     const sidebarBackdrop = document.getElementById('sidebar-backdrop');
     const menuToggleBtn = document.getElementById('menu-toggle-btn');
     const userMenuBtn = document.getElementById('user-menu-btn');
     const userMenuDropdown = document.getElementById('user-menu-dropdown');
-
-    const navLinksConfig = {
+    const sectionTitle = document.getElementById('section-title'); // Defined sectionTitle here
+    
+    const navLinksConfig = { /* ... same ... */
         dashboard: { icon: 'M3 13h8V3H3v10zM13 21h8V11h-8v10zM13 3v6h8V3h-8zM3 21h8v-8H3v8z', name: 'Dashboard' },
         projects: { icon: 'M3 7h18M3 12h18M3 17h18', name: 'Projects' },
         clients: { icon: 'M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0', name: 'Clients' },
@@ -665,20 +668,12 @@
         btn.innerHTML = `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="${icon}" /></svg><span>${name}</span>`;
     });
 
-    function toggleSidebar() {
-      sidebar.classList.toggle('-translate-x-full');
-      sidebarBackdrop.classList.toggle('hidden');
-    }
+    function toggleSidebar() { sidebar.classList.toggle('-translate-x-full'); sidebarBackdrop.classList.toggle('hidden'); }
     menuToggleBtn.addEventListener('click', toggleSidebar);
     sidebarBackdrop.addEventListener('click', toggleSidebar);
-
     userMenuBtn.addEventListener('click', () => userMenuDropdown.classList.toggle('hidden'));
     document.getElementById('logout-btn').addEventListener('click', logout);
-    document.addEventListener('click', (e) => { // Close dropdown if clicked outside
-        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-            userMenuDropdown.classList.add('hidden');
-        }
-    });
+    document.addEventListener('click', (e) => { if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) { userMenuDropdown.classList.add('hidden'); } });
 
     function setActiveSection(name) {
       document.querySelectorAll('.section').forEach(s => s.id === name ? s.classList.remove('hidden-by-default') : s.classList.add('hidden-by-default'));
@@ -689,11 +684,10 @@
     }
     document.querySelectorAll('.nav-link').forEach(n => n.addEventListener('click', () => setActiveSection(n.dataset.section)));
 
-    // --- PAGE RENDERING ROUTER ---
     function renderPage(pageName) {
         const container = document.getElementById(pageName);
         if (!container) return;
-        switch(pageName) {
+        switch(pageName) { /* ... same ... */
             case 'dashboard': renderDashboardPage(container); break;
             case 'projects': renderProjectsPage(container); break;
             case 'clients': renderClientsPage(container); break;
@@ -704,26 +698,28 @@
         }
     }
     
-    // --- PERSIST & RENDER ALL ---
     function persistAll() {
         saveData(LS_KEYS.clients, clients);
         saveData(LS_KEYS.freelancers, freelancers);
         saveData(LS_KEYS.projects, projects);
+        // Removed saving chats
     }
-    
-    // --- TEMPLATES & RENDER FUNCTIONS ---
-    const statusColors = {
-        'New': 'bg-blue-900/50 text-blue-300 border border-blue-500/30',
-        'In Progress': 'bg-yellow-900/50 text-yellow-300 border border-yellow-500/30',
-        'Pending Client Info': 'bg-orange-900/50 text-orange-300 border border-orange-500/30',
-        'Internal Review': 'bg-purple-900/50 text-purple-300 border border-purple-500/30',
-        'Delivered': 'bg-teal-900/50 text-teal-300 border border-teal-500/30',
-        'Completed': 'bg-gray-700 text-gray-400 border border-gray-600'
-    };
+
     const priorityColors = { 'High': 'var(--priority-high)', 'Medium': 'var(--priority-medium)', 'Low': 'var(--priority-low)' };
+    // Updated Status Colors
+    const statusColors = {
+        'Planning': 'bg-gray-700 text-gray-300 border border-gray-600',
+        'Design': 'bg-purple-900/50 text-purple-300 border border-purple-500/30',
+        'Development': 'bg-blue-900/50 text-blue-300 border border-blue-500/30',
+        'Testing': 'bg-orange-900/50 text-orange-300 border border-orange-500/30',
+        'Client Review': 'bg-yellow-900/50 text-yellow-300 border border-yellow-500/30',
+        'Revisions': 'bg-pink-900/50 text-pink-300 border border-pink-500/30',
+        'Delivered': 'bg-teal-900/50 text-teal-300 border border-teal-500/30',
+        'Completed': 'bg-green-900/50 text-green-300 border border-green-500/30' // Changed Completed color
+    };
 
     // --- DASHBOARD ---
-    function renderDashboardPage(container) {
+    function renderDashboardPage(container) { /* ... same, no changes needed ... */
         const totalRevenue = money(projects.reduce((s, p) => s + (Number(p.price) || 0), 0));
         const outstandingRevenue = money(projects.filter(p => p.paymentStatus === 'Pending' || p.paymentStatus === 'Overdue').reduce((s, p) => s + (Number(p.price) || 0), 0));
         const activeProjects = projects.filter(p => p.status !== 'Completed').length;
@@ -756,7 +752,6 @@
                 </div>
               </div>
             </div>
-            
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
               <div class="lg:col-span-1 bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn" style="animation-delay: 0.1s;">
                 <h3 class="font-semibold text-white mb-4">Nearing Deadline</h3>
@@ -771,49 +766,20 @@
                 <div id="dashboard-activity" class="space-y-3"></div>
               </div>
             </div>`;
-            
         const today = new Date().toISOString().slice(0,10);
-        // Nearing Deadline
         const deadlinesEl = document.getElementById('dashboard-deadlines');
-        const nearing = projects.filter(p => p.status !== 'Completed' && p.deadline && p.deadline >= today)
-                                .sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).slice(0,5);
-        if(nearing.length === 0) deadlinesEl.innerHTML = '<div class="text-gray-500 py-3 text-center text-sm">No upcoming deadlines.</div>';
-        else deadlinesEl.innerHTML = nearing.map(p => `
-          <div class="p-3 bg-gray-800/50 rounded-lg text-sm">
-            <div class="flex justify-between items-center">
-              <span class="font-medium text-gray-200">${escapeHtml(p.service)}</span>
-              <span class="text-yellow-400 font-semibold">${niceDate(p.deadline)}</span>
-            </div>
-            <div class="text-gray-400">${escapeHtml(clients.find(c => c.id === p.clientId)?.name || '...')}</div>
-          </div>`).join('');
-
-        // Overdue
+        const nearing = projects.filter(p => p.status !== 'Completed' && p.deadline && p.deadline >= today).sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).slice(0,5);
+        deadlinesEl.innerHTML = nearing.length === 0 ? '<div class="text-gray-500 py-3 text-center text-sm">No upcoming deadlines.</div>' : nearing.map(p => `<div class="p-3 bg-gray-800/50 rounded-lg text-sm"><div class="flex justify-between items-center"><span class="font-medium text-gray-200">${escapeHtml(p.service)}</span><span class="text-yellow-400 font-semibold">${niceDate(p.deadline)}</span></div><div class="text-gray-400">${escapeHtml(clients.find(c => c.id === p.clientId)?.name || '...')}</div></div>`).join('');
         const overdueEl = document.getElementById('dashboard-overdue');
-        const overdue = projects.filter(p => p.status !== 'Completed' && p.deadline && p.deadline < today)
-                                .sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).slice(0,5);
-        if(overdue.length === 0) overdueEl.innerHTML = '<div class="text-gray-500 py-3 text-center text-sm">No overdue projects!</div>';
-        else overdueEl.innerHTML = overdue.map(p => `
-          <div class="p-3 bg-gray-800/50 rounded-lg text-sm">
-            <div class="flex justify-between items-center">
-              <span class="font-medium text-gray-200">${escapeHtml(p.service)}</span>
-              <span class="text-red-400 font-semibold">${niceDate(p.deadline)}</span>
-            </div>
-            <div class="text-gray-400">${escapeHtml(clients.find(c => c.id === p.clientId)?.name || '...')}</div>
-          </div>`).join('');
-
-        // Recent Activity (Logs)
+        const overdue = projects.filter(p => p.status !== 'Completed' && p.deadline && p.deadline < today).sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).slice(0,5);
+        overdueEl.innerHTML = overdue.length === 0 ? '<div class="text-gray-500 py-3 text-center text-sm">No overdue projects!</div>' : overdue.map(p => `<div class="p-3 bg-gray-800/50 rounded-lg text-sm"><div class="flex justify-between items-center"><span class="font-medium text-gray-200">${escapeHtml(p.service)}</span><span class="text-red-400 font-semibold">${niceDate(p.deadline)}</span></div><div class="text-gray-400">${escapeHtml(clients.find(c => c.id === p.clientId)?.name || '...')}</div></div>`).join('');
         const activityEl = document.getElementById('dashboard-activity');
         const recentLogs = logs.slice(0, 5);
-        if (recentLogs.length === 0) activityEl.innerHTML = '<div class="text-gray-500 py-3 text-center text-sm">No recent activity.</div>';
-        else activityEl.innerHTML = recentLogs.map(log => `
-          <div class="p-3 bg-gray-800/50 rounded-lg text-sm">
-            <div class="text-gray-300">${escapeHtml(log.message)}</div>
-            <div class="text-gray-500 text-xs mt-1">${new Date(log.timestamp).toLocaleString()}</div>
-          </div>`).join('');
+        activityEl.innerHTML = recentLogs.length === 0 ? '<div class="text-gray-500 py-3 text-center text-sm">No recent activity.</div>' : recentLogs.map(log => `<div class="p-3 bg-gray-800/50 rounded-lg text-sm"><div class="text-gray-300">${escapeHtml(log.message)}</div><div class="text-gray-500 text-xs mt-1">${new Date(log.timestamp).toLocaleString()}</div></div>`).join('');
     }
     
     // --- PROJECTS ---
-    function renderProjectsPage(container) {
+    function renderProjectsPage(container) { /* ... same structure, listeners adjusted if needed */
         container.innerHTML = `
             <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
               <input id="search-projects" type="search" placeholder="Search by service or client..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-72">
@@ -837,21 +803,12 @@
               </table>
             </div>`;
         document.getElementById('add-project-btn').addEventListener('click', () => {
-            const form = projectModal.querySelector('form');
-            form.reset();
-            form['project-id'].value = '';
-            form['project-priority'].value = 'Medium';
-            form['project-payment-status'].value = 'Pending';
-            document.getElementById('project-modal-title').textContent = 'Add Project';
-            fillProjectFormOptions();
-            openModal(projectModal);
+            const form = projectModal.querySelector('form'); form.reset(); form['project-id'].value = ''; form['project-priority'].value = 'Medium'; form['project-payment-status'].value = 'Pending';
+            document.getElementById('project-modal-title').textContent = 'Add Project'; fillProjectFormOptions(); openModal(projectModal);
         });
         document.getElementById('search-projects').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            const filtered = projects.filter(p => {
-                const client = clients.find(c => c.id === p.clientId);
-                return p.service.toLowerCase().includes(term) || (client && client.name.toLowerCase().includes(term));
-            });
+            const filtered = projects.filter(p => { const client = clients.find(c => c.id === p.clientId); return p.service.toLowerCase().includes(term) || (client && client.name.toLowerCase().includes(term)); });
             renderProjects(filtered);
         });
         container.querySelectorAll('.table-header-sortable').forEach(header => {
@@ -864,27 +821,14 @@
         });
         renderProjects();
     }
-    
-    function renderProjects(filteredProjects = projects) {
+    function renderProjects(filteredProjects = projects) { /* Render rows with new status/priority */
         const tbody = document.getElementById('projects-tbody');
         tbody.innerHTML = '';
-        const sorted = [...filteredProjects].sort((a, b) => {
-            const valA = a[sortState.key];
-            const valB = b[sortState.key];
-            if (valA < valB) return sortState.direction === 'asc' ? -1 : 1;
-            if (valA > valB) return sortState.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
-        
-        if (sorted.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-500">No projects found.</td></tr>`; return;
-        }
-
+        const sorted = [...filteredProjects].sort((a, b) => { const valA = a[sortState.key]; const valB = b[sortState.key]; if (valA < valB) return sortState.direction === 'asc' ? -1 : 1; if (valA > valB) return sortState.direction === 'asc' ? 1 : -1; return 0; });
+        if (sorted.length === 0) { tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-500">No projects found.</td></tr>`; return; }
         sorted.forEach(p => {
-            const client = clients.find(c => c.id === p.clientId);
-            const freelancer = freelancers.find(f => f.id === p.freelancerId);
-            const tr = document.createElement('tr');
-            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
+            const client = clients.find(c => c.id === p.clientId); const freelancer = freelancers.find(f => f.id === p.freelancerId);
+            const tr = document.createElement('tr'); tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
             tr.innerHTML = `
                 <td data-label="Priority" class="p-3"><div class="priority-dot" style="background-color: ${priorityColors[p.priority]}"></div></td>
                 <td data-label="Project / Client" class="p-3">
@@ -904,661 +848,234 @@
                 </td>`;
             tbody.appendChild(tr);
         });
-        
-        tbody.querySelectorAll('.open-project-details').forEach(btn => btn.addEventListener('click', (e) => {
-            openProjectDetails(e.target.dataset.id);
-        }));
-        
-        tbody.querySelectorAll('.edit-project').forEach(btn => btn.addEventListener('click', (e) => {
-            const p = projects.find(x => x.id === e.target.dataset.id);
-            if (!p) return showToast('Project not found.', 'error');
-            const form = projectModal.querySelector('form');
-            form.reset();
-            document.getElementById('project-modal-title').textContent = 'Edit Project';
+        tbody.querySelectorAll('.open-project-details').forEach(btn => btn.addEventListener('click', (e) => openProjectDetails(e.target.dataset.id)));
+        tbody.querySelectorAll('.edit-project').forEach(btn => btn.addEventListener('click', (e) => { /* ... same edit logic ... */
+            const p = projects.find(x => x.id === e.target.dataset.id); if (!p) return showToast('Project not found.', 'error');
+            const form = projectModal.querySelector('form'); form.reset(); document.getElementById('project-modal-title').textContent = 'Edit Project';
             fillProjectFormOptions();
-            form['project-id'].value = p.id;
-            form['project-client'].value = p.clientId || '';
-            form['project-freelancer'].value = p.freelancerId || '';
-            form['project-service'].value = p.service;
-            form['project-price'].value = p.price;
-            form['project-status'].value = p.status;
-            form['project-payment-status'].value = p.paymentStatus;
-            form['project-priority'].value = p.priority;
-            form['project-deadline'].value = formatDate(p.deadline);
+            form['project-id'].value = p.id; form['project-client'].value = p.clientId || ''; form['project-freelancer'].value = p.freelancerId || '';
+            form['project-service'].value = p.service; form['project-price'].value = p.price; form['project-status'].value = p.status;
+            form['project-payment-status'].value = p.paymentStatus; form['project-priority'].value = p.priority; form['project-deadline'].value = formatDate(p.deadline);
             openModal(projectModal);
         }));
-        
-        tbody.querySelectorAll('.delete-project').forEach(btn => btn.addEventListener('click', (e) => {
-            const p = projects.find(x => x.id === e.target.dataset.id);
-            if (!p) return showToast('Project not found.', 'error');
-            showConfirmModal({
-                title: `Delete Project?`, text: `Are you sure you want to delete the project "${p.service}"?`,
-                onConfirm: () => {
-                    projects = projects.filter(x => x.id !== p.id);
-                    persistAll();
-                    renderProjects();
-                    logActivity(`Deleted project: ${p.service}`);
-                    showToast('Project deleted.');
-                }
+        tbody.querySelectorAll('.delete-project').forEach(btn => btn.addEventListener('click', (e) => { /* ... same delete logic ... */
+            const p = projects.find(x => x.id === e.target.dataset.id); if (!p) return showToast('Project not found.', 'error');
+            showConfirmModal({ title: `Delete Project?`, text: `Are you sure you want to delete the project "${p.service}"?`,
+                onConfirm: () => { projects = projects.filter(x => x.id !== p.id); persistAll(); renderProjects(); logActivity(`Deleted project: ${p.service}`); showToast('Project deleted.'); }
             });
         }));
     }
-    
-    function fillProjectFormOptions() {
-        const clientSelect = document.getElementById('project-client');
-        clientSelect.innerHTML = '<option value="">— Select client —</option>';
-        clients.forEach(c => clientSelect.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)} • ${escapeHtml(c.company)}</option>`);
-        
-        const freelancerSelects = [
-            document.getElementById('project-freelancer'),
-            document.getElementById('project-details-freelancer')
-        ];
-        freelancerSelects.forEach(select => {
-            select.innerHTML = '<option value="">— Unassigned —</option>';
-            freelancers.forEach(f => select.innerHTML += `<option value="${f.id}">${escapeHtml(f.name)}</option>`);
-        });
+    function fillProjectFormOptions() { /* ... same ... */
+        const clientSelect = document.getElementById('project-client'); clientSelect.innerHTML = '<option value="">— Select client —</option>'; clients.forEach(c => clientSelect.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)} • ${escapeHtml(c.company)}</option>`);
+        const freelancerSelects = [document.getElementById('project-freelancer'), document.getElementById('project-details-freelancer')];
+        freelancerSelects.forEach(select => { select.innerHTML = '<option value="">— Unassigned —</option>'; freelancers.forEach(f => select.innerHTML += `<option value="${f.id}">${escapeHtml(f.name)}</option>`); });
     }
-    
-    projectModal.querySelector('form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const id = form['project-id'].value;
-        const projectData = {
-            clientId: form['project-client'].value,
-            freelancerId: form['project-freelancer'].value,
-            service: form['project-service'].value.trim(),
-            price: parseFloat(form['project-price'].value) || 0,
-            status: form['project-status'].value,
-            paymentStatus: form['project-payment-status'].value,
-            priority: form['project-priority'].value,
-            deadline: form['project-deadline'].value ? new Date(form['project-deadline'].value).toISOString() : '',
-        };
+    projectModal.querySelector('form').addEventListener('submit', (e) => { /* Add new fields */
+        e.preventDefault(); const form = e.target; const id = form['project-id'].value;
+        const projectData = { clientId: form['project-client'].value, freelancerId: form['project-freelancer'].value, service: form['project-service'].value.trim(), price: parseFloat(form['project-price'].value) || 0, status: form['project-status'].value, paymentStatus: form['project-payment-status'].value, priority: form['project-priority'].value, deadline: form['project-deadline'].value ? new Date(form['project-deadline'].value).toISOString() : '' };
         if (!projectData.clientId || !projectData.service) return showToast('Client and Service are required.', 'error');
-        
-        if (id) {
-            const idx = projects.findIndex(p => p.id === id);
-            if (idx > -1) projects[idx] = { ...projects[idx], ...projectData };
-            logActivity(`Updated project: ${projectData.service}`);
-        } else {
-            projects.push({ ...newProjectDefaults(), id: uid(), dateAdded: new Date().toISOString(), ...projectData });
-            logActivity(`Created new project: ${projectData.service}`);
-        }
-        persistAll();
-        renderProjects();
-        closeModal(projectModal);
-        showToast(`Project ${id ? 'updated' : 'saved'} successfully!`);
+        if (id) { const idx = projects.findIndex(p => p.id === id); if (idx > -1) projects[idx] = { ...projects[idx], ...projectData }; logActivity(`Updated project: ${projectData.service}`); }
+        else { projects.push({ ...newProjectDefaults(), id: uid(), dateAdded: new Date().toISOString(), ...projectData }); logActivity(`Created new project: ${projectData.service}`); }
+        persistAll(); renderProjects(); closeModal(projectModal); showToast(`Project ${id ? 'updated' : 'saved'} successfully!`);
     });
-
-    // --- PROJECT DETAILS MODAL ---
-    function openProjectDetails(projectId) {
-        const project = projects.find(p => p.id === projectId);
-        if (!project) return showToast('Could not find project details.', 'error');
-        
-        currentProjectDetailsId = projectId; // Set global tracker
-        
-        const client = clients.find(c => c.id === project.clientId);
-        document.getElementById('project-details-title').textContent = project.service;
-        document.getElementById('project-details-client').textContent = `for ${client?.name || 'Unknown Client'}`;
-        
-        // Fill form fields
-        document.getElementById('project-details-status').value = project.status;
-        document.getElementById('project-details-freelancer').value = project.freelancerId || '';
-        document.getElementById('project-details-priority').value = project.priority;
-        document.getElementById('project-details-payment-status').value = project.paymentStatus;
-        document.getElementById('project-details-price').value = project.price;
-        document.getElementById('project-details-deadline').value = formatDate(project.deadline);
+    // --- PROJECT DETAILS MODAL LOGIC ---
+    function openProjectDetails(projectId) { /* Update status select */
+        const project = projects.find(p => p.id === projectId); if (!project) return showToast('Could not find project details.', 'error');
+        currentProjectDetailsId = projectId; const client = clients.find(c => c.id === project.clientId);
+        document.getElementById('project-details-title').textContent = project.service; document.getElementById('project-details-client').textContent = `for ${client?.name || 'Unknown Client'}`;
+        document.getElementById('project-details-status').value = project.status; document.getElementById('project-details-freelancer').value = project.freelancerId || '';
+        document.getElementById('project-details-priority').value = project.priority; document.getElementById('project-details-payment-status').value = project.paymentStatus;
+        document.getElementById('project-details-price').value = project.price; document.getElementById('project-details-deadline').value = formatDate(project.deadline);
         document.getElementById('project-details-brief').value = project.brief;
-
-        fillProjectFormOptions(); // Ensure freelancer dropdown is populated
-        renderProjectDetailsSubtasks(project);
-        renderProjectDetailsNotes(project);
-        openModal(projectDetailsModal);
+        fillProjectFormOptions(); renderProjectDetailsSubtasks(project); renderProjectDetailsNotes(project); openModal(projectDetailsModal);
     }
-
-    function renderProjectDetailsSubtasks(project) {
+    function renderProjectDetailsSubtasks(project) { /* ... same ... */
         const listEl = document.getElementById('project-details-subtasks-list');
-        listEl.innerHTML = '';
-        if (!project.subtasks || project.subtasks.length === 0) {
-            listEl.innerHTML = '<li class="text-sm text-gray-500 text-center py-2">No sub-tasks added.</li>';
-            return;
-        }
-        project.subtasks.forEach(task => {
-            const li = document.createElement('li');
-            li.className = 'subtask-list-item flex items-center justify-between p-2 bg-gray-800/60 rounded-md';
-            li.innerHTML = `
-              <label class="flex-1 flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" data-task-id="${task.id}" class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-indigo-600 focus:ring-indigo-500" ${task.done ? 'checked' : ''}>
-                <span class="text-gray-300">${escapeHtml(task.text)}</span>
-              </label>
-              <button data-task-id="${task.id}" class="delete-subtask text-gray-500 hover:text-red-400 text-lg">&times;</button>
-            `;
-            listEl.appendChild(li);
-        });
+        listEl.innerHTML = (!project.subtasks || project.subtasks.length === 0) ? '<li class="text-sm text-gray-500 text-center py-2">No sub-tasks added.</li>' : project.subtasks.map(task => `<li class="subtask-list-item flex items-center justify-between p-2 bg-gray-800/60 rounded-md"><label class="flex-1 flex items-center gap-3 cursor-pointer"><input type="checkbox" data-task-id="${task.id}" class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-indigo-600 focus:ring-indigo-500" ${task.done ? 'checked' : ''}><span class="text-gray-300">${escapeHtml(task.text)}</span></label><button data-task-id="${task.id}" class="delete-subtask text-gray-500 hover:text-red-400 text-lg">&times;</button></li>`).join('');
     }
-
-    function renderProjectDetailsNotes(project) {
+    function renderProjectDetailsNotes(project) { /* ... same ... */
         const listEl = document.getElementById('project-details-notes-list');
-        listEl.innerHTML = '';
-        if (!project.notes || project.notes.length === 0) {
-            listEl.innerHTML = '<li class="text-sm text-gray-500 text-center py-2">No notes added.</li>';
-            return;
-        }
-        [...project.notes].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(note => {
-            const li = document.createElement('li');
-            li.className = 'text-sm p-3 bg-gray-800/60 rounded-md';
-            li.innerHTML = `
-              <p class="text-gray-300 whitespace-pre-wrap">${escapeHtml(note.text)}</p>
-              <div class="text-gray-500 text-xs mt-2">${new Date(note.timestamp).toLocaleString()}</div>
-            `;
-            listEl.appendChild(li);
-        });
+        listEl.innerHTML = (!project.notes || project.notes.length === 0) ? '<li class="text-sm text-gray-500 text-center py-2">No notes added.</li>' : [...project.notes].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).map(note => `<li class="text-sm p-3 bg-gray-800/60 rounded-md"><p class="text-gray-300 whitespace-pre-wrap">${escapeHtml(note.text)}</p><div class="text-gray-500 text-xs mt-2">${new Date(note.timestamp).toLocaleString()}</div></li>`).join('');
     }
-
-    // --- Project Details Event Listeners ---
-    document.getElementById('project-details-add-task-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const project = projects.find(p => p.id === currentProjectDetailsId);
-        if (!project) return;
-        const input = document.getElementById('project-details-new-task-text');
-        const text = input.value.trim();
-        if (text) {
-            project.subtasks.push({ id: uid(), text, done: false });
-            input.value = '';
-            renderProjectDetailsSubtasks(project);
-            persistAll();
-        }
+    document.getElementById('project-details-add-task-form').addEventListener('submit', (e) => { /* ... same ... */
+        e.preventDefault(); const project = projects.find(p => p.id === currentProjectDetailsId); if (!project) return;
+        const input = document.getElementById('project-details-new-task-text'); const text = input.value.trim();
+        if (text) { project.subtasks.push({ id: uid(), text, done: false }); input.value = ''; renderProjectDetailsSubtasks(project); persistAll(); }
     });
-
-    document.getElementById('project-details-subtasks-list').addEventListener('click', (e) => {
-        const project = projects.find(p => p.id === currentProjectDetailsId);
-        if (!project) return;
-        // Check/uncheck task
-        if (e.target.matches('input[type="checkbox"]')) {
-            const taskId = e.target.dataset.taskId;
-            const task = project.subtasks.find(t => t.id === taskId);
-            if (task) {
-                task.done = e.target.checked;
-                persistAll();
-                renderProjectDetailsSubtasks(project); // Re-render to show strikethrough
-            }
-        }
-        // Delete task
-        if (e.target.matches('.delete-subtask')) {
-            const taskId = e.target.dataset.taskId;
-            project.subtasks = project.subtasks.filter(t => t.id !== taskId);
-            persistAll();
-            renderProjectDetailsSubtasks(project);
-        }
+    document.getElementById('project-details-subtasks-list').addEventListener('click', (e) => { /* ... same ... */
+        const project = projects.find(p => p.id === currentProjectDetailsId); if (!project) return;
+        if (e.target.matches('input[type="checkbox"]')) { const taskId = e.target.dataset.taskId; const task = project.subtasks.find(t => t.id === taskId); if (task) { task.done = e.target.checked; persistAll(); renderProjectDetailsSubtasks(project); } }
+        if (e.target.matches('.delete-subtask')) { const taskId = e.target.dataset.taskId; project.subtasks = project.subtasks.filter(t => t.id !== taskId); persistAll(); renderProjectDetailsSubtasks(project); }
     });
-
-    document.getElementById('project-details-add-note-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const project = projects.find(p => p.id === currentProjectDetailsId);
-        if (!project) return;
-        const input = document.getElementById('project-details-new-note-text');
-        const text = input.value.trim();
-        if (text) {
-            project.notes.push({ id: uid(), text, timestamp: new Date().toISOString() });
-            input.value = '';
-            renderProjectDetailsNotes(project);
-            persistAll();
-        }
+    document.getElementById('project-details-add-note-form').addEventListener('submit', (e) => { /* ... same ... */
+        e.preventDefault(); const project = projects.find(p => p.id === currentProjectDetailsId); if (!project) return;
+        const input = document.getElementById('project-details-new-note-text'); const text = input.value.trim();
+        if (text) { project.notes.push({ id: uid(), text, timestamp: new Date().toISOString() }); input.value = ''; renderProjectDetailsNotes(project); persistAll(); }
     });
-
-    document.getElementById('project-details-save-btn').addEventListener('click', () => {
-        const project = projects.find(p => p.id === currentProjectDetailsId);
-        if (!project) return showToast('Error saving project.', 'error');
-        
-        project.status = document.getElementById('project-details-status').value;
-        project.freelancerId = document.getElementById('project-details-freelancer').value;
-        project.priority = document.getElementById('project-details-priority').value;
-        project.paymentStatus = document.getElementById('project-details-payment-status').value;
-        project.price = parseFloat(document.getElementById('project-details-price').value) || 0;
-        project.deadline = document.getElementById('project-details-deadline').value ? new Date(document.getElementById('project-details-deadline').value).toISOString() : '';
+    document.getElementById('project-details-save-btn').addEventListener('click', () => { /* Add new fields */
+        const project = projects.find(p => p.id === currentProjectDetailsId); if (!project) return showToast('Error saving project.', 'error');
+        project.status = document.getElementById('project-details-status').value; project.freelancerId = document.getElementById('project-details-freelancer').value;
+        project.priority = document.getElementById('project-details-priority').value; project.paymentStatus = document.getElementById('project-details-payment-status').value;
+        project.price = parseFloat(document.getElementById('project-details-price').value) || 0; project.deadline = document.getElementById('project-details-deadline').value ? new Date(document.getElementById('project-details-deadline').value).toISOString() : '';
         project.brief = document.getElementById('project-details-brief').value;
-        
-        persistAll();
-        logActivity(`Updated details for project: ${project.service}`);
-        showToast('Project details saved!', 'success');
-        closeModal(projectDetailsModal);
-        renderProjects(); // Refresh table
+        persistAll(); logActivity(`Updated details for project: ${project.service}`); showToast('Project details saved!', 'success'); closeModal(projectDetailsModal); renderProjects();
     });
-
 
     // --- CLIENTS ---
-    function renderClientsPage(container) {
+    function renderClientsPage(container) { /* Remove avatar display */
         container.innerHTML = `
-            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <input id="search-clients" type="search" placeholder="Search by name or company..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none w-full sm:w-72">
-              <button id="add-client-btn" class="w-full sm:w-auto px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 transition-all duration-200">+ Add New Client</button>
-            </div>
-            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
-              <table class="w-full text-sm text-left responsive-table">
-                <thead class="text-gray-400 md:border-b md:border-gray-700"><tr>
-                    <th class="p-3">Name</th><th class="p-3">Company</th><th class="p-3">Contact</th><th class="p-3">Joined On</th><th class="p-3 text-right">Actions</th>
-                </tr></thead>
-                <tbody id="clients-tbody" class="md:divide-y md:divide-gray-700"></tbody>
-              </table>
-            </div>`;
-        document.getElementById('add-client-btn').addEventListener('click', () => {
-            const form = clientModal.querySelector('form');
-            form.reset();
-            form['client-id'].value = '';
-            document.getElementById('client-modal-title').textContent = 'Add Client';
-            openModal(clientModal);
-        });
-        document.getElementById('search-clients').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = clients.filter(c => c.name.toLowerCase().includes(term) || c.company.toLowerCase().includes(term));
-            renderClients(filtered);
-        });
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6"> <input id="search-clients" type="search" placeholder="Search by name or company..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none w-full sm:w-72"> <button id="add-client-btn" class="w-full sm:w-auto px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 transition-all duration-200">+ Add New Client</button> </div>
+            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto"> <table class="w-full text-sm text-left responsive-table"> <thead class="text-gray-400 md:border-b md:border-gray-700"><tr> <th class="p-3">Name</th><th class="p-3">Company</th><th class="p-3">Contact</th><th class="p-3">Joined On</th><th class="p-3 text-right">Actions</th> </tr></thead> <tbody id="clients-tbody" class="md:divide-y md:divide-gray-700"></tbody> </table> </div>`;
+        document.getElementById('add-client-btn').addEventListener('click', () => { const form = clientModal.querySelector('form'); form.reset(); form['client-id'].value = ''; document.getElementById('client-modal-title').textContent = 'Add Client'; openModal(clientModal); });
+        document.getElementById('search-clients').addEventListener('input', (e) => { const term = e.target.value.toLowerCase(); const filtered = clients.filter(c => c.name.toLowerCase().includes(term) || c.company.toLowerCase().includes(term)); renderClients(filtered); });
         renderClients();
     }
-    
-    function renderClients(filteredClients = clients) {
-        const tbody = document.getElementById('clients-tbody');
-        tbody.innerHTML = '';
-        if (filteredClients.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No clients found.</td></tr>`; return;
-        }
+    function renderClients(filteredClients = clients) { /* Remove avatar display */
+        const tbody = document.getElementById('clients-tbody'); tbody.innerHTML = '';
+        if (filteredClients.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No clients found.</td></tr>`; return; }
         filteredClients.forEach(c => {
-            const tr = document.createElement('tr');
-            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
+            const tr = document.createElement('tr'); tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
             tr.innerHTML = `
-                <td data-label="Name" class="p-3">
-                  <div class="flex items-center gap-3 avatar-cell">
-                    <img src="${getAvatar(c.email || c.id)}" alt="avatar" class="w-8 h-8 rounded-full" />
-                    <span class="font-medium">${escapeHtml(c.name)}</span>
-                  </div>
-                </td>
+                <td data-label="Name" class="p-3 font-medium">${escapeHtml(c.name)}</td>
                 <td data-label="Company" class="p-3 text-gray-400">${escapeHtml(c.company)}</td>
-                <td data-label="Contact" class="p-3">
-                  <div class="text-gray-300">${escapeHtml(c.email)}</div>
-                  <div class="text-gray-400">${escapeHtml(c.phone)}</div>
-                </td>
+                <td data-label="Contact" class="p-3"> <div class="text-gray-300">${escapeHtml(c.email)}</div> <div class="text-gray-400">${escapeHtml(c.phone)}</div> </td>
                 <td data-label="Joined On" class="p-3 text-gray-400">${niceDate(c.dateJoined)}</td>
-                <td data-label="Actions" class="p-3 text-right">
-                  <div class="flex gap-2 justify-end actions-cell">
-                    <button data-id="${c.id}" class="edit-client px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
-                    <button data-id="${c.id}" class="delete-client px-3 py-1.5 bg-red-600/20 text-red-300 rounded-md text-xs font-semibold hover:bg-red-600/40">Delete</button>
-                  </div>
-                </td>`;
+                <td data-label="Actions" class="p-3 text-right"> <div class="flex gap-2 justify-end actions-cell"> <button data-id="${c.id}" class="edit-client px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button> <button data-id="${c.id}" class="delete-client px-3 py-1.5 bg-red-600/20 text-red-300 rounded-md text-xs font-semibold hover:bg-red-600/40">Delete</button> </div> </td>`;
             tbody.appendChild(tr);
         });
-        tbody.querySelectorAll('.edit-client').forEach(btn => btn.addEventListener('click', (e) => {
-            const client = clients.find(c => c.id === e.target.dataset.id);
-            if (!client) return showToast('Client not found.', 'error');
-            const form = clientModal.querySelector('form');
-            form.reset();
-            document.getElementById('client-modal-title').textContent = 'Edit Client';
-            form['client-id'].value = client.id;
-            form['client-name'].value = client.name;
-            form['client-email'].value = client.email;
-            form['client-company'].value = client.company;
-            form['client-phone'].value = client.phone;
+        // Removed Chat button listener
+        tbody.querySelectorAll('.edit-client').forEach(btn => btn.addEventListener('click', (e) => { /* ... same ... */
+            const client = clients.find(c => c.id === e.target.dataset.id); if (!client) return showToast('Client not found.', 'error');
+            const form = clientModal.querySelector('form'); form.reset(); document.getElementById('client-modal-title').textContent = 'Edit Client';
+            form['client-id'].value = client.id; form['client-name'].value = client.name; form['client-email'].value = client.email; form['client-company'].value = client.company; form['client-phone'].value = client.phone;
             openModal(clientModal);
         }));
-        tbody.querySelectorAll('.delete-client').forEach(btn => btn.addEventListener('click', (e) => {
-            const client = clients.find(c => c.id === e.target.dataset.id);
-            if (!client) return showToast('Client not found.', 'error');
-            showConfirmModal({
-                title: `Delete Client: ${client.name}`,
-                text: 'This will also delete all associated projects. This action cannot be undone.',
+        tbody.querySelectorAll('.delete-client').forEach(btn => btn.addEventListener('click', (e) => { /* Removed chat deletion */
+            const client = clients.find(c => c.id === e.target.dataset.id); if (!client) return showToast('Client not found.', 'error');
+            showConfirmModal({ title: `Delete Client: ${client.name}`, text: 'This will also delete all associated projects. This action cannot be undone.',
                 onConfirm: () => {
                     const associatedProjectCount = projects.filter(p => p.clientId === client.id).length;
-                    clients = clients.filter(c => c.id !== client.id);
-                    projects = projects.filter(p => p.clientId !== client.id);
-                    persistAll();
-                    renderClients();
-                    logActivity(`Deleted client: ${client.name} and ${associatedProjectCount} associated project(s)`);
-                    showToast('Client and projects deleted.');
+                    clients = clients.filter(c => c.id !== client.id); projects = projects.filter(p => p.clientId !== client.id);
+                    persistAll(); // No need to save chats separately
+                    renderClients(); logActivity(`Deleted client: ${client.name} and ${associatedProjectCount} associated project(s).`); showToast('Client and projects deleted.');
                 }
             });
         }));
     }
-    
-    clientModal.querySelector('form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const id = form['client-id'].value;
-        const clientData = {
-            name: form['client-name'].value.trim(),
-            email: form['client-email'].value.trim(),
-            company: form['client-company'].value.trim(),
-            phone: form['client-phone'].value.trim()
-        };
-        if (id) {
-            const idx = clients.findIndex(c => c.id === id);
-            if (idx > -1) clients[idx] = { ...clients[idx], ...clientData };
-            logActivity(`Updated client: ${clientData.name}`);
-        } else {
-            clients.push({ ...newClientDefaults(), id: uid(), ...clientData });
-            logActivity(`Created new client: ${clientData.name}`);
-        }
-        persistAll();
-        renderClients();
-        closeModal(clientModal);
-        showToast(`Client ${id ? 'updated' : 'saved'} successfully!`);
+    clientModal.querySelector('form').addEventListener('submit', (e) => { /* ... same ... */
+        e.preventDefault(); const form = e.target; const id = form['client-id'].value;
+        const clientData = { name: form['client-name'].value.trim(), email: form['client-email'].value.trim(), company: form['client-company'].value.trim(), phone: form['client-phone'].value.trim() };
+        if (id) { const idx = clients.findIndex(c => c.id === id); if (idx > -1) clients[idx] = { ...clients[idx], ...clientData }; logActivity(`Updated client: ${clientData.name}`); }
+        else { clients.push({ ...newClientDefaults(), id: uid(), ...clientData }); logActivity(`Created new client: ${clientData.name}`); }
+        persistAll(); renderClients(); closeModal(clientModal); showToast(`Client ${id ? 'updated' : 'saved'} successfully!`);
     });
 
     // --- FREELANCERS ---
-    function renderFreelancersPage(container) {
+    function renderFreelancersPage(container) { /* Remove avatar display */
         container.innerHTML = `
-            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <input id="search-freelancers" type="search" placeholder="Search freelancers by name..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none w-full sm:w-72">
-              <button id="add-freelancer-btn" class="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-md shadow-lg hover:bg-teal-700 transition-all duration-200">+ Add New Freelancer</button>
-            </div>
-            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
-              <table class="w-full text-sm text-left responsive-table">
-                <thead class="text-gray-400 md:border-b md:border-gray-700">
-                  <tr><th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Specialty</th><th class="p-3 text-right">Actions</th></tr>
-                </thead>
-                <tbody id="freelancers-tbody" class="md:divide-y md:divide-gray-700"></tbody>
-              </table>
-            </div>`;
-        document.getElementById('add-freelancer-btn').addEventListener('click', () => {
-            const form = freelancerModal.querySelector('form');
-            form.reset();
-            form['freelancer-id'].value = '';
-            document.getElementById('freelancer-modal-title').textContent = 'Add Freelancer';
-            openModal(freelancerModal);
-        });
-        document.getElementById('search-freelancers').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = freelancers.filter(f => f.name.toLowerCase().includes(term));
-            renderFreelancers(filtered);
-        });
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6"> <input id="search-freelancers" type="search" placeholder="Search freelancers by name..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none w-full sm:w-72"> <button id="add-freelancer-btn" class="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-md shadow-lg hover:bg-teal-700 transition-all duration-200">+ Add New Freelancer</button> </div>
+            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto"> <table class="w-full text-sm text-left responsive-table"> <thead class="text-gray-400 md:border-b md:border-gray-700"> <tr><th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Specialty</th><th class="p-3 text-right">Actions</th></tr> </thead> <tbody id="freelancers-tbody" class="md:divide-y md:divide-gray-700"></tbody> </table> </div>`;
+        document.getElementById('add-freelancer-btn').addEventListener('click', () => { const form = freelancerModal.querySelector('form'); form.reset(); form['freelancer-id'].value = ''; document.getElementById('freelancer-modal-title').textContent = 'Add Freelancer'; openModal(freelancerModal); });
+        document.getElementById('search-freelancers').addEventListener('input', (e) => { const term = e.target.value.toLowerCase(); const filtered = freelancers.filter(f => f.name.toLowerCase().includes(term)); renderFreelancers(filtered); });
         renderFreelancers();
     }
-
-    function renderFreelancers(filteredFreelancers = freelancers) {
-        const tbody = document.getElementById('freelancers-tbody');
-        tbody.innerHTML = '';
-        if (filteredFreelancers.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No freelancers found.</td></tr>`; return;
-        }
+    function renderFreelancers(filteredFreelancers = freelancers) { /* Remove avatar display */
+        const tbody = document.getElementById('freelancers-tbody'); tbody.innerHTML = '';
+        if (filteredFreelancers.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No freelancers found.</td></tr>`; return; }
         filteredFreelancers.forEach(f => {
-            const tr = document.createElement('tr');
-            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
+            const tr = document.createElement('tr'); tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
             tr.innerHTML = `
-                <td data-label="Name" class="p-3">
-                  <div class="flex items-center gap-3 avatar-cell">
-                    <img src="${getAvatar(f.email || f.id)}" alt="avatar" class="w-8 h-8 rounded-full" />
-                    <span class="font-medium">${escapeHtml(f.name)}</span>
-                  </div>
-                </td>
+                <td data-label="Name" class="p-3 font-medium">${escapeHtml(f.name)}</td>
                 <td data-label="Email" class="p-3 text-gray-400">${escapeHtml(f.email)}</td>
                 <td data-label="Specialty" class="p-3 text-gray-400">${escapeHtml(f.specialty)}</td>
-                <td data-label="Actions" class="p-3 text-right">
-                    <div class="flex gap-2 justify-end actions-cell">
-                        <button data-id="${f.id}" class="edit-freelancer px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
-                        <button data-id="${f.id}" class="delete-freelancer px-3 py-1.5 bg-red-600/20 text-red-300 rounded-md text-xs font-semibold hover:bg-red-600/40">Delete</button>
-                    </div>
-                </td>`;
+                <td data-label="Actions" class="p-3 text-right"> <div class="flex gap-2 justify-end actions-cell"> <button data-id="${f.id}" class="edit-freelancer px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button> <button data-id="${f.id}" class="delete-freelancer px-3 py-1.5 bg-red-600/20 text-red-300 rounded-md text-xs font-semibold hover:bg-red-600/40">Delete</button> </div> </td>`;
             tbody.appendChild(tr);
         });
-        tbody.querySelectorAll('.edit-freelancer').forEach(btn => btn.addEventListener('click', (e) => {
-            const f = freelancers.find(x => x.id === e.target.dataset.id);
-            if (!f) return showToast('Freelancer not found.', 'error');
-            const form = freelancerModal.querySelector('form');
-            form.reset();
-            document.getElementById('freelancer-modal-title').textContent = 'Edit Freelancer';
-            form['freelancer-id'].value = f.id;
-            form['freelancer-name'].value = f.name;
-            form['freelancer-email'].value = f.email;
-            form['freelancer-specialty'].value = f.specialty;
+        // Removed chat button listener
+        tbody.querySelectorAll('.edit-freelancer').forEach(btn => btn.addEventListener('click', (e) => { /* ... same ... */
+            const f = freelancers.find(x => x.id === e.target.dataset.id); if (!f) return showToast('Freelancer not found.', 'error');
+            const form = freelancerModal.querySelector('form'); form.reset(); document.getElementById('freelancer-modal-title').textContent = 'Edit Freelancer';
+            form['freelancer-id'].value = f.id; form['freelancer-name'].value = f.name; form['freelancer-email'].value = f.email; form['freelancer-specialty'].value = f.specialty;
             openModal(freelancerModal);
         }));
-        tbody.querySelectorAll('.delete-freelancer').forEach(btn => btn.addEventListener('click', (e) => {
-            const f = freelancers.find(x => x.id === e.target.dataset.id);
-            if (!f) return showToast('Freelancer not found.', 'error');
-            showConfirmModal({
-                title: `Delete Freelancer: ${f.name}`,
-                text: 'Projects will be unassigned, not deleted. Are you sure?',
+        tbody.querySelectorAll('.delete-freelancer').forEach(btn => btn.addEventListener('click', (e) => { /* Removed chat deletion */
+            const f = freelancers.find(x => x.id === e.target.dataset.id); if (!f) return showToast('Freelancer not found.', 'error');
+            showConfirmModal({ title: `Delete Freelancer: ${f.name}`, text: 'Projects will be unassigned. Are you sure?',
                 onConfirm: () => {
-                    freelancers = freelancers.filter(x => x.id !== f.id);
-                    projects = projects.map(p => p.freelancerId === f.id ? { ...p, freelancerId: '' } : p);
-                    persistAll();
-                    renderFreelancers();
-                    logActivity(`Deleted freelancer: ${f.name} and unassigned their projects.`);
-                    showToast('Freelancer deleted.');
+                    freelancers = freelancers.filter(x => x.id !== f.id); projects = projects.map(p => p.freelancerId === f.id ? { ...p, freelancerId: '' } : p);
+                    persistAll(); // No chat save needed
+                    renderFreelancers(); logActivity(`Deleted freelancer: ${f.name} and unassigned their projects.`); showToast('Freelancer deleted.');
                 }
             });
         }));
     }
-
-    freelancerModal.querySelector('form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const id = form['freelancer-id'].value;
-        const freelancerData = {
-            name: form['freelancer-name'].value.trim(),
-            email: form['freelancer-email'].value.trim(),
-            specialty: form['freelancer-specialty'].value.trim()
-        };
-        if (id) {
-            const idx = freelancers.findIndex(f => f.id === id);
-            if (idx > -1) freelancers[idx] = { ...freelancers[idx], ...freelancerData };
-            logActivity(`Updated freelancer: ${freelancerData.name}`);
-        } else {
-            freelancers.push({ ...newFreelancerDefaults(), id: uid(), ...freelancerData });
-            logActivity(`Created new freelancer: ${freelancerData.name}`);
-        }
-        persistAll();
-        renderFreelancers();
-        closeModal(freelancerModal);
-        showToast(`Freelancer ${id ? 'updated' : 'saved'} successfully!`);
+    freelancerModal.querySelector('form').addEventListener('submit', (e) => { /* ... same ... */
+        e.preventDefault(); const form = e.target; const id = form['freelancer-id'].value;
+        const freelancerData = { name: form['freelancer-name'].value.trim(), email: form['freelancer-email'].value.trim(), specialty: form['freelancer-specialty'].value.trim() };
+        if (id) { const idx = freelancers.findIndex(f => f.id === id); if (idx > -1) freelancers[idx] = { ...freelancers[idx], ...freelancerData }; logActivity(`Updated freelancer: ${freelancerData.name}`); }
+        else { freelancers.push({ ...newFreelancerDefaults(), id: uid(), ...freelancerData }); logActivity(`Created new freelancer: ${freelancerData.name}`); }
+        persistAll(); renderFreelancers(); closeModal(freelancerModal); showToast(`Freelancer ${id ? 'updated' : 'saved'} successfully!`);
     });
-
-    // --- REPORTS ---
-    function renderReportsPage(container) {
-        container.innerHTML = `
-            <div class="space-y-6">
-                <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn">
-                    <h3 class="text-lg font-semibold text-white mb-4">Download Reports</h3>
-                    <p class="text-gray-400 mb-6">Export your portal data as CSV files for use in spreadsheets or other applications.</p>
-                    <div class="flex flex-wrap gap-4">
-                        <button id="dl-projects-csv" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 transition-all duration-200">Download Projects CSV</button>
-                        <button id="dl-clients-csv" class="px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 transition-all duration-200">Download Clients CSV</button>
-                        <button id="dl-freelancers-csv" class="px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-md shadow-lg hover:bg-teal-700 transition-all duration-200">Download Freelancers CSV</button>
-                    </div>
-                </div>
-            </div>`;
-        
-        document.getElementById('dl-projects-csv').addEventListener('click', () => {
-            const dataToExport = projects.map(p => {
-                const client = clients.find(c => c.id === p.clientId);
-                const freelancer = freelancers.find(f => f.id === p.freelancerId);
-                return {
-                    ProjectID: p.id,
-                    ClientName: client?.name || 'N/A',
-                    ClientCompany: client?.company || 'N/A',
-                    Service: p.service,
-                    Price: p.price,
-                    Status: p.status,
-                    PaymentStatus: p.paymentStatus,
-                    Priority: p.priority,
-                    Freelancer: freelancer?.name || 'Unassigned',
-                    DateAdded: niceDate(p.dateAdded),
-                    Deadline: niceDate(p.deadline)
-                };
-            });
-            downloadCSV(dataToExport, 'projects_report.csv');
-            logActivity('Downloaded projects report');
-            showToast('Projects report generated!');
-        });
-
-        document.getElementById('dl-clients-csv').addEventListener('click', () => {
-            const dataToExport = clients.map(c => ({
-                ClientID: c.id,
-                Name: c.name,
-                Company: c.company,
-                Email: c.email,
-                Phone: c.phone,
-                DateJoined: niceDate(c.dateJoined)
-            }));
-            downloadCSV(dataToExport, 'clients_report.csv');
-            logActivity('Downloaded clients report');
-            showToast('Clients report generated!');
-        });
-        document.getElementById('dl-freelancers-csv').addEventListener('click', () => {
-            const dataToExport = freelancers.map(f => ({
-                FreelancerID: f.id,
-                Name: f.name,
-                Email: f.email,
-                Specialty: f.specialty
-            }));
-            downloadCSV(dataToExport, 'freelancers_report.csv');
-            logActivity('Downloaded freelancers report');
-            showToast('Freelancers report generated!');
-        });
-    }
-
-    function downloadCSV(data, filename) {
-        if (data.length === 0) {
-            showToast('No data available to export.', 'info');
-            return;
-        }
-        const headers = Object.keys(data[0]);
-        const csvRows = [
-            headers.join(','),
-            ...data.map(row => headers.map(header => JSON.stringify(row[header])).join(','))
-        ];
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
     
-    // --- LOGS ---
-    function renderLogsPage(container) {
+    // --- REPORTS, LOGS, SETTINGS --- (Largely unchanged, just remove chat references)
+    function renderReportsPage(container) { /* ... same structure ... */
         container.innerHTML = `
-            <div class="flex items-center justify-between gap-4 mb-6">
-              <p class="text-gray-400">Showing the last ${logs.length} entries.</p>
-              <button id="clear-logs-btn" class="px-4 py-2 bg-red-800 text-white font-semibold rounded-md hover:bg-red-700 transition">Clear All Logs</button>
-            </div>
-            <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
-              <table class="w-full text-sm text-left responsive-table">
-                <thead class="text-gray-400 md:border-b md:border-gray-700">
-                  <tr><th class="p-3">Timestamp</th><th class="p-3">Message</th></tr>
-                </thead>
-                <tbody id="logs-tbody" class="md:divide-y md:divide-gray-700"></tbody>
-              </table>
-            </div>`;
-        
-        document.getElementById('clear-logs-btn').addEventListener('click', () => {
-            showConfirmModal({
-                title: 'Clear Audit Log?',
-                text: 'Are you sure you want to permanently delete all log entries?',
-                onConfirm: () => {
-                    logs = [];
-                    saveData(LS_KEYS.logs, logs);
-                    renderLogs();
-                    showToast('Audit log cleared.');
-                }
-            });
+            <div class="space-y-6"> <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn"> <h3 class="text-lg font-semibold text-white mb-4">Download Reports</h3> <p class="text-gray-400 mb-6">Export your portal data as CSV files for use in spreadsheets or other applications.</p> <div class="flex flex-wrap gap-4"> <button id="dl-projects-csv" class="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 transition-all duration-200">Download Projects CSV</button> <button id="dl-clients-csv" class="px-5 py-2.5 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 transition-all duration-200">Download Clients CSV</button> <button id="dl-freelancers-csv" class="px-5 py-2.5 bg-teal-600 text-white font-semibold rounded-md shadow-lg hover:bg-teal-700 transition-all duration-200">Download Freelancers CSV</button> </div> </div> </div>`;
+        document.getElementById('dl-projects-csv').addEventListener('click', () => { /* ... same data export */
+            const dataToExport = projects.map(p => { const client = clients.find(c => c.id === p.clientId); const freelancer = freelancers.find(f => f.id === p.freelancerId); return { ProjectID: p.id, ClientName: client?.name || 'N/A', ClientCompany: client?.company || 'N/A', Service: p.service, Price: p.price, Status: p.status, PaymentStatus: p.paymentStatus, Priority: p.priority, Freelancer: freelancer?.name || 'Unassigned', DateAdded: niceDate(p.dateAdded), Deadline: niceDate(p.deadline) }; });
+            downloadCSV(dataToExport, 'projects_report.csv'); logActivity('Downloaded projects report'); showToast('Projects report generated!');
         });
-        renderLogs();
-    }
-
-    function renderLogs() {
-        const tbody = document.getElementById('logs-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        if (logs.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-gray-500">No log entries found.</td></tr>`; return;
-        }
-        logs.forEach(log => {
-            const tr = document.createElement('tr');
-            tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
-            const logDate = new Date(log.timestamp);
-            tr.innerHTML = `
-                <td data-label="Timestamp" class="p-3 text-gray-400">${logDate.toLocaleString()}</td>
-                <td data-label="Message" class="p-3">${escapeHtml(log.message)}</td>
-            `;
-            tbody.appendChild(tr);
+        document.getElementById('dl-clients-csv').addEventListener('click', () => { /* ... same data export */
+            const dataToExport = clients.map(c => ({ ClientID: c.id, Name: c.name, Company: c.company, Email: c.email, Phone: c.phone, DateJoined: niceDate(c.dateJoined) }));
+            downloadCSV(dataToExport, 'clients_report.csv'); logActivity('Downloaded clients report'); showToast('Clients report generated!');
+        });
+        document.getElementById('dl-freelancers-csv').addEventListener('click', () => { /* ... same data export */
+            const dataToExport = freelancers.map(f => ({ FreelancerID: f.id, Name: f.name, Email: f.email, Specialty: f.specialty }));
+            downloadCSV(dataToExport, 'freelancers_report.csv'); logActivity('Downloaded freelancers report'); showToast('Freelancers report generated!');
         });
     }
-
-    // --- SETTINGS ---
-    function renderSettingsPage(container) {
+    function downloadCSV(data, filename) { /* ... same ... */
+        if (data.length === 0) { showToast('No data available to export.', 'info'); return; } const headers = Object.keys(data[0]); const csvRows = [ headers.join(','), ...data.map(row => headers.map(header => JSON.stringify(row[header])).join(',')) ]; const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+    }
+    function renderLogsPage(container) { /* ... same ... */
+        container.innerHTML = ` <div class="flex items-center justify-between gap-4 mb-6"> <p class="text-gray-400">Showing the last ${logs.length} entries.</p> <button id="clear-logs-btn" class="px-4 py-2 bg-red-800 text-white font-semibold rounded-md hover:bg-red-700 transition">Clear All Logs</button> </div> <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto"> <table class="w-full text-sm text-left responsive-table"> <thead class="text-gray-400 md:border-b md:border-gray-700"> <tr><th class="p-3">Timestamp</th><th class="p-3">Message</th></tr> </thead> <tbody id="logs-tbody" class="md:divide-y md:divide-gray-700"></tbody> </table> </div>`;
+        document.getElementById('clear-logs-btn').addEventListener('click', () => { showConfirmModal({ title: 'Clear Audit Log?', text: 'Are you sure you want to permanently delete all log entries?', onConfirm: () => { logs = []; saveData(LS_KEYS.logs, logs); renderLogs(); showToast('Audit log cleared.'); } }); }); renderLogs();
+    }
+    function renderLogs() { /* ... same ... */
+        const tbody = document.getElementById('logs-tbody'); if (!tbody) return; tbody.innerHTML = (logs.length === 0) ? `<tr><td colspan="2" class="p-4 text-center text-gray-500">No log entries found.</td></tr>` : logs.map(log => `<tr class="md:hover:bg-gray-800/50 animate-fadeIn"><td data-label="Timestamp" class="p-3 text-gray-400">${new Date(log.timestamp).toLocaleString()}</td><td data-label="Message" class="p-3">${escapeHtml(log.message)}</td></tr>`).join('');
+    }
+    function renderSettingsPage(container) { /* Removed chat data from export/import/clear */
         container.innerHTML = `
             <div class="space-y-8 max-w-2xl mx-auto">
-                <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn">
-                    <h3 class="text-lg font-semibold text-white mb-2">Data Management</h3>
-                    <p class="text-gray-400 mb-6">Export all portal data to a single JSON file for backup, or import a file to restore your data.</p>
-                    <div class="flex flex-wrap gap-4">
-                        <button id="export-data-btn" class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 transition">Export All Data</button>
-                        <label class="cursor-pointer px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-md shadow-lg hover:bg-gray-700 transition">
-                            Import Data
-                            <input type="file" id="import-data-input" class="hidden" accept=".json">
-                        </label>
-                    </div>
-                </div>
-                <div class="bg-gray-900 rounded-2xl p-6 border border-red-500/30 animate-fadeIn" style="animation-delay: 0.1s;">
-                    <h3 class="text-lg font-semibold text-red-400 mb-2">Danger Zone</h3>
-                    <p class="text-gray-400 mb-6">This action is irreversible. All clients, freelancers, projects, and logs will be permanently deleted.</p>
-                    <button id="clear-all-data-btn" class="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 transition">Clear All Portal Data</button>
-                </div>
+                <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn"> <h3 class="text-lg font-semibold text-white mb-2">Data Management</h3> <p class="text-gray-400 mb-6">Export all portal data to a single JSON file for backup, or import a file to restore your data.</p> <div class="flex flex-wrap gap-4"> <button id="export-data-btn" class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 transition">Export All Data</button> <label class="cursor-pointer px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-md shadow-lg hover:bg-gray-700 transition">Import Data<input type="file" id="import-data-input" class="hidden" accept=".json"></label> </div> </div>
+                <div class="bg-gray-900 rounded-2xl p-6 border border-red-500/30 animate-fadeIn" style="animation-delay: 0.1s;"> <h3 class="text-lg font-semibold text-red-400 mb-2">Danger Zone</h3> <p class="text-gray-400 mb-6">This action is irreversible. All clients, freelancers, projects, and logs will be permanently deleted.</p> <button id="clear-all-data-btn" class="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 transition">Clear All Portal Data</button> </div>
             </div>`;
-
         document.getElementById('export-data-btn').addEventListener('click', () => {
-            const allData = {
-                clients: loadData(LS_KEYS.clients),
-                freelancers: loadData(LS_KEYS.freelancers),
-                projects: loadData(LS_KEYS.projects),
-                logs: loadData(LS_KEYS.logs)
-            };
-            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `feasibility-media-backup-${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            logActivity('Exported all portal data.');
-            showToast('Data exported successfully!');
+            const allData = {}; Object.keys(LS_KEYS).forEach(key => { if(key !== 'lastAutoAdd' && key !== 'chats') allData[key] = loadData(LS_KEYS[key]); }); // Exclude chats
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `feasibility-media-backup-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url);
+            logActivity('Exported all portal data.'); showToast('Data exported successfully!');
         });
-        
         document.getElementById('import-data-input').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
+            const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
             reader.onload = (event) => {
                 try {
                     const data = JSON.parse(event.target.result);
-                    if (data.clients && data.projects && data.freelancers) {
-                        showConfirmModal({
-                            title: 'Import Data?',
-                            text: 'This will overwrite all current data in the portal. Are you sure you wish to proceed?',
+                    if (data.clients && data.projects && data.freelancers) { // Check for core data, ignore chats
+                        showConfirmModal({ title: 'Import Data?', text: 'This will overwrite all current data in the portal (excluding chats). Are you sure?',
                             onConfirm: () => {
-                                saveData(LS_KEYS.clients, data.clients);
-                                saveData(LS_KEYS.freelancers, data.freelancers);
-                                saveData(LS_KEYS.projects, data.projects);
-                                saveData(LS_KEYS.logs, data.logs || []);
-                                logActivity('Imported data from file.');
-                                showToast('Data imported successfully! Reloading...');
-                                setTimeout(() => window.location.reload(), 1500);
+                                Object.keys(data).forEach(key => { if(LS_KEYS[key] && key !== 'chats') saveData(LS_KEYS[key], data[key]); }); // Import only known keys, exclude chats
+                                logActivity('Imported data from file.'); showToast('Data imported successfully! Reloading...'); setTimeout(() => window.location.reload(), 1500);
                             }
                         });
                     } else { throw new Error('Invalid file structure.'); }
                 } catch (err) { showToast('Error reading or parsing file.', 'error'); }
-            };
-            reader.readAsText(file);
-            e.target.value = ''; // Reset input
+            }; reader.readAsText(file); e.target.value = '';
         });
-
         document.getElementById('clear-all-data-btn').addEventListener('click', () => {
-            showConfirmModal({
-                title: 'DELETE ALL DATA?',
-                text: 'This is your final confirmation. All portal data will be lost forever. Are you absolutely sure?',
+            showConfirmModal({ title: 'DELETE ALL DATA?', text: 'This is your final confirmation. All portal data (excluding chats) will be lost forever. Are you absolutely sure?',
                 onConfirm: () => {
-                    Object.values(LS_KEYS).forEach(key => localStorage.removeItem(key));
-                    showToast('All data cleared. Reloading...', 'info');
-                    setTimeout(() => window.location.reload(), 1500);
+                    Object.keys(LS_KEYS).forEach(key => { if (key !== 'chats') localStorage.removeItem(LS_KEYS[key]); }); // Keep chats if they exist? Or remove LS_KEYS.chats too? Decided to keep separate for now. Can remove if needed.
+                    showToast('All data cleared. Reloading...', 'info'); setTimeout(() => window.location.reload(), 1500);
                 }
             });
         });
