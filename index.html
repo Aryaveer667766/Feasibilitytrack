@@ -240,8 +240,10 @@
 
 <script>
 /*
-  Feasibility Media — Enterprise Portal v3.0 (Merged)
+  Feasibility Media — Enterprise Portal v3.2 (Merged + Auto-Add)
   Features: Mobile-first design, Login, User Profile, Audit Logs, CSV Reports, Settings.
+  New: Auto-adds a random client/project every 1.5 hours to simulate activity.
+  New: Randomizes plan durations (1mo, 3mo, 6mo, 1yr) and calculates price.
 */
 (() => {
   // --- APP INITIALIZATION & AUTH ---
@@ -284,7 +286,13 @@
 
   function initializeApp() {
     // --- UTILITIES & STATE ---
-    const LS_KEYS = { clients: 'fm_clients_v3', freelancers: 'fm_freelancers_v3', projects: 'fm_projects_v3', logs: 'fm_logs_v3' };
+    const LS_KEYS = {
+        clients: 'fm_clients_v3',
+        freelancers: 'fm_freelancers_v3',
+        projects: 'fm_projects_v3',
+        logs: 'fm_logs_v3',
+        lastAutoAdd: 'fm_last_auto_add' // Key for auto-add timer
+    };
     function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
     function saveData(key, arr) { localStorage.setItem(key, JSON.stringify(arr || [])); }
     function loadData(key) { try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : []; } catch (e) { return []; } }
@@ -293,6 +301,91 @@
     
     let clients = loadData(LS_KEYS.clients), freelancers = loadData(LS_KEYS.freelancers), projects = loadData(LS_KEYS.projects), logs = loadData(LS_KEYS.logs);
     let sortState = { key: 'dateAdded', direction: 'desc' };
+
+    // --- AUTO-ADD SIMULATION ---
+    const MOCK_PLAN_TYPES = [
+        { baseName: 'Starter', basePrice: 5000 },
+        { baseName: 'Growth', basePrice: 10000 },
+        { baseName: 'Pro', basePrice: 20000 }
+    ];
+    const MOCK_DURATIONS = [
+        { name: '1 Month', multiplier: 1 },
+        { name: '3 Months', multiplier: 3 },
+        { name: '6 Months', multiplier: 6 },
+        { name: '1 Year', multiplier: 12 }
+    ];
+    
+    const MOCK_FIRST_NAMES = ['Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan', 'Saanvi', 'Aadhya', 'Kiara', 'Diya', 'Pari', 'Ananya', 'Riya', 'Aarohi'];
+    const MOCK_LAST_NAMES = ['Sharma', 'Verma', 'Gupta', 'Singh', 'Patel', 'Kumar', 'Das', 'Reddy', 'Yadav', 'Jain'];
+    const MOCK_COMPANY_PREFIX = ['Apex', 'Global', 'Dynamic', 'Quantum', 'Stellar', 'Synergy', 'Zenith', 'Nexus', 'Future'];
+    const MOCK_COMPANY_SUFFIX = ['Solutions', 'Tech', 'Media', 'Group', 'Innovations', 'Labs', 'Digital', 'Enterprises'];
+
+    function getRandomElement(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generateRandomClient() {
+        const firstName = getRandomElement(MOCK_FIRST_NAMES);
+        const lastName = getRandomElement(MOCK_LAST_NAMES);
+        const name = `${firstName} ${lastName}`;
+        const company = `${getRandomElement(MOCK_COMPANY_PREFIX)} ${getRandomElement(MOCK_COMPANY_SUFFIX)}`;
+        const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 100)}@${company.toLowerCase().replace(/ /g, '')}.com`;
+        return { id: uid(), name, email, company };
+    }
+
+    function generateRandomProject(clientId) {
+        const planType = getRandomElement(MOCK_PLAN_TYPES);
+        const duration = getRandomElement(MOCK_DURATIONS);
+
+        const serviceName = `${planType.baseName} - ${duration.name}`;
+        const finalPrice = planType.basePrice * duration.multiplier;
+        
+        const statuses = ['New', 'In Progress', 'Pending Client Info'];
+        return {
+            id: uid(),
+            clientId: clientId,
+            freelancerId: '', // Unassigned by default
+            service: serviceName,
+            price: finalPrice,
+            status: getRandomElement(statuses),
+            dateAdded: new Date().toISOString()
+        };
+    }
+
+    function checkAndRunAutoAdd(currentClients, currentProjects, currentLogs) {
+        const AUTO_ADD_INTERVAL_MS = 1.5 * 60 * 60 * 1000; // 1.5 hours
+        const lastRun = localStorage.getItem(LS_KEYS.lastAutoAdd);
+        const now = Date.now();
+
+        if (!lastRun || (now - parseInt(lastRun, 10)) > AUTO_ADD_INTERVAL_MS) {
+            console.log('Running auto-add simulation...');
+            const newClient = generateRandomClient();
+            currentClients.push(newClient);
+            
+            const newProject = generateRandomProject(newClient.id);
+            currentProjects.push(newProject);
+            
+            // Log activity (must use unshift to add to start)
+            const logTime = new Date().toISOString();
+            currentLogs.unshift({ id: uid(), message: `[AUTO] New client added: ${newClient.name} (${newClient.company})`, type: 'info', timestamp: logTime });
+            currentLogs.unshift({ id: uid(), message: `[AUTO] New project added: ${newProject.service} for ${newClient.name}`, type: 'info', timestamp: logTime });
+            
+            // Persist all
+            saveData(LS_KEYS.clients, currentClients);
+            saveData(LS_KEYS.projects, currentProjects);
+            saveData(LS_KEYS.logs, currentLogs);
+            localStorage.setItem(LS_KEYS.lastAutoAdd, now.toString());
+            
+            return {
+                didRun: true,
+                clients: currentClients,
+                projects: currentProjects,
+                logs: currentLogs
+            };
+        }
+        
+        return { didRun: false, clients, projects, logs };
+    }
 
     // --- DOM REFS ---
     const sectionTitle = document.getElementById('section-title');
@@ -313,6 +406,17 @@
             toast.classList.remove('show');
             toast.addEventListener('transitionend', () => toast.remove());
         }, 3000);
+    }
+
+    // Run auto-add check and update data if necessary
+    // We do this *before* defining the modal helpers, but *after* defining showToast
+    const autoAddResult = checkAndRunAutoAdd(clients, projects, logs);
+    if (autoAddResult.didRun) {
+        clients = autoAddResult.clients;
+        projects = autoAddResult.projects;
+        logs = autoAddResult.logs;
+        // Show toast after a small delay to let the app finish loading
+        setTimeout(() => showToast('New client activity simulated!', 'info'), 500);
     }
 
     function openModal(modal) {
