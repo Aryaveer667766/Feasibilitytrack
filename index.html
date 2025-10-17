@@ -15,6 +15,9 @@
       --text-primary: #f3f4f6; /* gray-200 */
       --text-secondary: #9ca3af; /* gray-400 */
       --accent-color: #4f46e5; /* indigo-600 */
+      --priority-high: #ef4444; /* red-500 */
+      --priority-medium: #eab308; /* yellow-500 */
+      --priority-low: #22c55e; /* green-500 */
     }
 
     /* General Styling */
@@ -25,6 +28,16 @@
     .nav-link.active { background-color: var(--accent-color); color: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06); }
     .table-header-sortable { cursor: pointer; user-select: none; transition: color .2s ease; }
     .table-header-sortable:hover { color: var(--text-primary); }
+    
+    /* Priority & Payment Tags */
+    .priority-dot { width: 10px; height: 10px; border-radius: 99px; }
+    .payment-tag { font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .payment-tag.paid { background-color: #166534; color: #bbf7d0; } /* green-800 / green-200 */
+    .payment-tag.pending { background-color: #a16207; color: #fef08a; } /* yellow-800 / yellow-200 */
+    .payment-tag.overdue { background-color: #991b1b; color: #fecaca; } /* red-800 / red-200 */
+
+    /* Project Details Modal Sub-tasks */
+    .subtask-list-item input:checked + label { text-decoration: line-through; color: var(--text-secondary); }
 
     /* Mobile Responsive Tables */
     @media (max-width: 768px) {
@@ -34,13 +47,14 @@
       .responsive-table td:last-child { border-bottom: none; }
       .responsive-table td::before { content: attr(data-label); font-weight: 600; text-align: left; margin-right: 1rem; color: var(--text-secondary); }
       .responsive-table td .actions-cell { width: 100%; }
+      .responsive-table td .avatar-cell { justify-content: flex-end; }
     }
     
     /* Animations */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .animate-fadeIn { animation: fadeIn .4s ease-out forwards; }
-    .modal .relative { animation: slideUp .3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+    .modal .modal-content { animation: slideUp .3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 
     /* Custom Toast Notifications */
     #toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; }
@@ -70,8 +84,17 @@
             <input id="username" value="admin" class="w-full mt-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-400">Password</label>
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-medium text-gray-400">Password</label>
+              <a href="#" class="text-xs text-indigo-400 hover:underline">Forgot Password?</a>
+            </div>
             <input id="password" type="password" value="password" class="w-full mt-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 text-sm text-gray-400">
+              <input type="checkbox" class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-indigo-600 focus:ring-indigo-500" />
+              Remember me
+            </label>
           </div>
           <p id="login-error" class="text-sm text-red-400 hidden">Invalid credentials. Please try again.</p>
           <button type="submit" class="w-full px-5 py-3 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 transition-all duration-200">Login</button>
@@ -91,7 +114,6 @@
           <div><h1 class="font-bold text-lg text-white">Feasibility Media</h1><p class="text-xs text-gray-400">Enterprise Portal</p></div>
         </div>
       </div>
-
       <nav class="p-4 space-y-2 flex-1">
         <button data-section="dashboard" class="nav-link w-full flex items-center gap-3 px-4 py-2.5 rounded-md hover:bg-gray-700 transition-all duration-200"></button>
         <button data-section="projects" class="nav-link w-full flex items-center gap-3 px-4 py-2.5 rounded-md hover:bg-gray-700 transition-all duration-200"></button>
@@ -138,7 +160,7 @@
   
   <div id="confirm-modal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/60" data-close-modal></div>
-    <div class="relative w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+    <div class="relative modal-content w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
       <h4 id="confirm-modal-title" class="text-xl font-bold text-white mb-2">Confirm Action</h4>
       <p id="confirm-modal-text" class="text-gray-400 mb-6">Are you sure you want to proceed?</p>
       <div class="flex justify-end gap-3">
@@ -150,21 +172,27 @@
   
   <div id="client-modal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/60" data-close-modal></div>
-    <div class="relative w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+    <div class="relative modal-content w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
       <h4 id="client-modal-title" class="text-xl font-bold text-white mb-6">Add Client</h4>
       <form id="client-form" class="space-y-4">
         <input type="hidden" id="client-id" />
-        <div>
-          <label class="text-sm font-medium text-gray-400">Name</label>
-          <input required id="client-name" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-400">Name</label>
+            <input required id="client-name" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Company</label>
+            <input required id="client-company" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+          </div>
         </div>
         <div>
           <label class="text-sm font-medium text-gray-400">Email</label>
           <input required id="client-email" type="email" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-400">Company</label>
-          <input required id="client-company" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+          <label class="text-sm font-medium text-gray-400">Phone</label>
+          <input id="client-phone" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
         </div>
         <div class="flex justify-end gap-3 pt-4">
           <button type="button" data-close-modal class="px-4 py-2 rounded-md border border-gray-600 text-gray-300 hover:bg-gray-700 transition">Cancel</button>
@@ -176,13 +204,21 @@
 
   <div id="freelancer-modal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/60" data-close-modal></div>
-    <div class="relative w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+    <div class="relative modal-content w-full max-w-md bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
       <h4 id="freelancer-modal-title" class="text-xl font-bold text-white mb-6">Add Freelancer</h4>
       <form id="freelancer-form" class="space-y-4">
         <input type="hidden" id="freelancer-id" />
         <div>
           <label class="text-sm font-medium text-gray-400">Name</label>
           <input required id="freelancer-name" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-400">Email</label>
+          <input required id="freelancer-email" type="email" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-400">Specialty</label>
+          <input id="freelancer-specialty" placeholder="e.g. SEO Writer, Video Editor" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-teal-500 focus:outline-none" />
         </div>
         <div class="flex justify-end gap-3 pt-4">
           <button type="button" data-close-modal class="px-4 py-2 rounded-md border border-gray-600 text-gray-300 hover:bg-gray-700 transition">Cancel</button>
@@ -194,7 +230,7 @@
 
   <div id="project-modal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4 overflow-y-auto">
     <div class="absolute inset-0 bg-black/60" data-close-modal></div>
-    <div class="relative w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+    <div class="relative modal-content w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
       <h4 id="project-modal-title" class="text-xl font-bold text-white mb-6">Add Project</h4>
       <form id="project-form" class="space-y-4">
         <input type="hidden" id="project-id" />
@@ -224,9 +260,20 @@
             </select>
           </div>
           <div>
-            <label class="text-sm font-medium text-gray-400">Date Added</label>
-            <input id="project-date" type="date" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-            <div class="text-xs text-gray-500 mt-1">Leave blank to use today's date.</div>
+            <label class="text-sm font-medium text-gray-400">Payment Status</label>
+            <select required id="project-payment-status" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option>Pending</option><option>Paid</option><option>Overdue</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Priority</label>
+            <select required id="project-priority" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option>Low</option><option selected>Medium</option><option>High</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-400">Deadline</label>
+            <input id="project-deadline" type="date" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
           </div>
         </div>
         <div class="flex justify-end gap-3 pt-4">
@@ -236,14 +283,106 @@
       </form>
     </div>
   </div>
+  
+  <div id="project-details-modal" class="modal fixed inset-0 z-50 hidden p-4 overflow-y-auto">
+    <div class="absolute inset-0 bg-black/60" data-close-modal></div>
+    <div class="relative modal-content w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl border border-gray-700 my-8">
+      <div class="flex items-start justify-between p-6 border-b border-gray-700">
+        <div>
+          <h4 id="project-details-title" class="text-2xl font-bold text-white">Project Title</h4>
+          <p id="project-details-client" class="text-gray-400">for Client Name</p>
+        </div>
+        <button type="button" data-close-modal class="p-2 -mt-2 -mr-2 text-gray-400 hover:bg-gray-700 rounded-full">&times;</button>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <h5 class="font-semibold text-white mb-4">Project Details</h5>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <label class="block text-gray-400 text-xs font-medium">Status</label>
+                <select id="project-details-status" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                  <option>New</option><option>In Progress</option><option>Pending Client Info</option><option>Internal Review</option><option>Delivered</option><option>Completed</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-gray-400 text-xs font-medium">Freelancer</label>
+                <select id="project-details-freelancer" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"></select>
+              </div>
+              <div>
+                <label class="block text-gray-400 text-xs font-medium">Priority</label>
+                <select id="project-details-priority" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                  <option>Low</option><option>Medium</option><option>High</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-gray-400 text-xs font-medium">Payment</label>
+                <select id="project-details-payment-status" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                  <option>Pending</option><option>Paid</option><option>Overdue</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-gray-400 text-xs font-medium">Price</label>
+                <input id="project-details-price" type="number" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-gray-400 text-xs font-medium">Deadline</label>
+                <input id="project-details-deadline" type="date" class="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <h5 class="font-semibold text-white mb-3">Project Brief</h5>
+            <textarea id="project-details-brief" rows="6" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter project description, goals, and requirements..."></textarea>
+          </div>
+          <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <h5 class="font-semibold text-white mb-3">Sub-Tasks</h5>
+            <ul id="project-details-subtasks-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+              </ul>
+            <form id="project-details-add-task-form" class="flex gap-2 mt-3">
+              <input id="project-details-new-task-text" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Add a new task..." />
+              <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition text-sm">Add</button>
+            </form>
+          </div>
+        </div>
+        <div class="lg:col-span-1 space-y-6">
+          <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <h5 class="font-semibold text-white mb-3">Notes & Activity</h5>
+            <form id="project-details-add-note-form" class="space-y-2 mb-4">
+              <textarea id="project-details-new-note-text" rows="3" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Add a note..."></textarea>
+              <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition text-sm">Save Note</button>
+            </form>
+            <ul id="project-details-notes-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+              </ul>
+          </div>
+          <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <h5 class="font-semibold text-white mb-3">(Mock) Files</h5>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2 text-gray-300"><svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> brief_v2.pdf</li>
+              <li class="flex items-center gap-2 text-gray-300"><svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg> brand_guidelines.zip</li>
+              <li class="flex items-center gap-2 text-gray-300"><svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14" /></svg> final_assets.png</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 p-4 bg-gray-900 border-t border-gray-700 rounded-b-xl">
+        <button type="button" data-close-modal class="px-4 py-2 rounded-md border border-gray-600 text-gray-300 hover:bg-gray-700 transition">Close</button>
+        <button id="project-details-save-btn" type="button" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition">Save Changes</button>
+      </div>
+    </div>
+  </div>
 
 
 <script>
 /*
-  Feasibility Media — Enterprise Portal v3.2 (Merged + Auto-Add)
-  Features: Mobile-first design, Login, User Profile, Audit Logs, CSV Reports, Settings.
-  New: Auto-adds a random client/project every 1.5 hours to simulate activity.
-  New: Randomizes plan durations (1mo, 3mo, 6mo, 1yr) and calculates price.
+  Feasibility Media — Enterprise Portal v3.3 (Realistic)
+  Features: Login, Auth, All previous features +
+  - Financial Layer (Payment Status)
+  - Deeper Data Models (Phone, Specialty, Priority, Deadline)
+  - Full Project Details Modal (Brief, Sub-tasks, Notes)
+  - Actionable Dashboard (Outstanding Revenue, Deadlines)
+  - Advanced Simulation (Realistic Dates, Statuses, Assignments)
+  - UI Polish (Avatars, Login Screen Details)
 */
 (() => {
   // --- APP INITIALIZATION & AUTH ---
@@ -287,103 +426,141 @@
   function initializeApp() {
     // --- UTILITIES & STATE ---
     const LS_KEYS = {
-        clients: 'fm_clients_v3',
-        freelancers: 'fm_freelancers_v3',
-        projects: 'fm_projects_v3',
-        logs: 'fm_logs_v3',
-        lastAutoAdd: 'fm_last_auto_add' // Key for auto-add timer
+        clients: 'fm_clients_v3.3',
+        freelancers: 'fm_freelancers_v3.3',
+        projects: 'fm_projects_v3.3',
+        logs: 'fm_logs_v3.3',
+        lastAutoAdd: 'fm_last_auto_add_v3.3'
     };
     function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
     function saveData(key, arr) { localStorage.setItem(key, JSON.stringify(arr || [])); }
     function loadData(key) { try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : []; } catch (e) { return []; } }
     function money(n) { return (Number(n) || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }); }
     function escapeHtml(u) { return u == null ? '' : String(u).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
-    
+    function formatDate(dateStr) { return dateStr ? new Date(dateStr).toISOString().slice(0,10) : ''; }
+    function niceDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleDateString() : '—'; }
+    function getAvatar(idOrEmail) { return `https://i.pravatar.cc/40?u=${idOrEmail}`; }
+
     let clients = loadData(LS_KEYS.clients), freelancers = loadData(LS_KEYS.freelancers), projects = loadData(LS_KEYS.projects), logs = loadData(LS_KEYS.logs);
     let sortState = { key: 'dateAdded', direction: 'desc' };
+    let currentProjectDetailsId = null; // Track which project is open in the details modal
+
+    // --- DATA DEFAULTS (for realistic simulation & new entries) ---
+    const newClientDefaults = () => ({
+        phone: '',
+        dateJoined: new Date().toISOString()
+    });
+    const newFreelancerDefaults = () => ({
+        email: '',
+        specialty: ''
+    });
+    const newProjectDefaults = () => ({
+        paymentStatus: 'Pending',
+        deadline: '',
+        priority: 'Medium',
+        brief: '',
+        subtasks: [],
+        notes: []
+    });
 
     // --- AUTO-ADD SIMULATION ---
     const MOCK_PLAN_TYPES = [
-        { baseName: 'Starter', basePrice: 5000 },
-        { baseName: 'Growth', basePrice: 10000 },
-        { baseName: 'Pro', basePrice: 20000 }
+        { baseName: 'Starter', basePrice: 5000, tasks: ['Keyword Research', '1 Blog Post Draft', 'Client Review'] },
+        { baseName: 'Growth', basePrice: 10000, tasks: ['Keyword Research', 'On-Page SEO Audit', '2 Blog Post Drafts', 'Client Review'] },
+        { baseName: 'Pro', basePrice: 20000, tasks: ['Full SEO Strategy', 'Keyword Research', '4 Blog Posts', 'Link Building Outreach', 'Final Report'] }
     ];
     const MOCK_DURATIONS = [
-        { name: '1 Month', multiplier: 1 },
-        { name: '3 Months', multiplier: 3 },
-        { name: '6 Months', multiplier: 6 },
-        { name: '1 Year', multiplier: 12 }
+        { name: '1 Month', multiplier: 1 }, { name: '3 Months', multiplier: 3 },
+        { name: '6 Months', multiplier: 6 }, { name: '1 Year', multiplier: 12 }
     ];
-    
     const MOCK_FIRST_NAMES = ['Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan', 'Saanvi', 'Aadhya', 'Kiara', 'Diya', 'Pari', 'Ananya', 'Riya', 'Aarohi'];
     const MOCK_LAST_NAMES = ['Sharma', 'Verma', 'Gupta', 'Singh', 'Patel', 'Kumar', 'Das', 'Reddy', 'Yadav', 'Jain'];
     const MOCK_COMPANY_PREFIX = ['Apex', 'Global', 'Dynamic', 'Quantum', 'Stellar', 'Synergy', 'Zenith', 'Nexus', 'Future'];
     const MOCK_COMPANY_SUFFIX = ['Solutions', 'Tech', 'Media', 'Group', 'Innovations', 'Labs', 'Digital', 'Enterprises'];
+    const MOCK_PHONES = ['987XXXXX01', '991XXXXX02', '982XXXXX03', '973XXXXX04', '964XXXXX05', '955XXXXX06'];
 
-    function getRandomElement(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
+    function getRandomElement(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function randomDateInPast(days) {
+        const past = new Date();
+        past.setDate(past.getDate() - Math.floor(Math.random() * days));
+        return past.toISOString();
     }
 
-    function generateRandomClient() {
+    function generateRandomClient(date) {
         const firstName = getRandomElement(MOCK_FIRST_NAMES);
         const lastName = getRandomElement(MOCK_LAST_NAMES);
         const name = `${firstName} ${lastName}`;
         const company = `${getRandomElement(MOCK_COMPANY_PREFIX)} ${getRandomElement(MOCK_COMPANY_SUFFIX)}`;
         const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 100)}@${company.toLowerCase().replace(/ /g, '')}.com`;
-        return { id: uid(), name, email, company };
-    }
-
-    function generateRandomProject(clientId) {
-        const planType = getRandomElement(MOCK_PLAN_TYPES);
-        const duration = getRandomElement(MOCK_DURATIONS);
-
-        const serviceName = `${planType.baseName} - ${duration.name}`;
-        const finalPrice = planType.basePrice * duration.multiplier;
-        
-        const statuses = ['New', 'In Progress', 'Pending Client Info'];
         return {
-            id: uid(),
-            clientId: clientId,
-            freelancerId: '', // Unassigned by default
-            service: serviceName,
-            price: finalPrice,
-            status: getRandomElement(statuses),
-            dateAdded: new Date().toISOString()
+            id: uid(), name, email, company,
+            phone: getRandomElement(MOCK_PHONES),
+            dateJoined: date
         };
     }
 
-    function checkAndRunAutoAdd(currentClients, currentProjects, currentLogs) {
+    function generateRandomProject(clientId, dateAdded, existingFreelancers) {
+        const planType = getRandomElement(MOCK_PLAN_TYPES);
+        const duration = getRandomElement(MOCK_DURATIONS);
+        const serviceName = `${planType.baseName} - ${duration.name}`;
+        const finalPrice = planType.basePrice * duration.multiplier;
+        const deadline = new Date(dateAdded);
+        deadline.setDate(deadline.getDate() + 30 * duration.multiplier);
+        
+        let status, paymentStatus, notes = [];
+        const today = new Date();
+        if (deadline < today) {
+            status = 'Completed';
+            paymentStatus = 'Paid';
+            notes.push({ id: uid(), text: 'Project signed off and completed.', timestamp: deadline.toISOString() });
+        } else {
+            const daysSinceStart = (today - new Date(dateAdded)) / (1000 * 60 * 60 * 24);
+            status = daysSinceStart < 7 ? 'New' : 'In Progress';
+            paymentStatus = 'Pending';
+            notes.push({ id: uid(), text: 'Project kicked off.', timestamp: new Date(dateAdded).toISOString() });
+        }
+
+        const subtasks = planType.tasks.map(taskText => ({ id: uid(), text: taskText, done: (status === 'Completed') }));
+        const freelancerId = existingFreelancers.length > 0 ? getRandomElement(existingFreelancers).id : '';
+
+        return {
+            id: uid(), clientId, freelancerId,
+            service: serviceName,
+            price: finalPrice,
+            status, paymentStatus,
+            priority: getRandomElement(['Low', 'Medium', 'High']),
+            dateAdded: dateAdded,
+            deadline: deadline.toISOString(),
+            brief: `Full-service package for ${serviceName}. Key goals: Increase organic traffic and improve brand presence.`,
+            subtasks, notes
+        };
+    }
+
+    function checkAndRunAutoAdd(currentClients, currentProjects, currentLogs, currentFreelancers) {
         const AUTO_ADD_INTERVAL_MS = 1.5 * 60 * 60 * 1000; // 1.5 hours
         const lastRun = localStorage.getItem(LS_KEYS.lastAutoAdd);
         const now = Date.now();
 
         if (!lastRun || (now - parseInt(lastRun, 10)) > AUTO_ADD_INTERVAL_MS) {
             console.log('Running auto-add simulation...');
-            const newClient = generateRandomClient();
+            const date = randomDateInPast(90);
+            const newClient = generateRandomClient(date);
             currentClients.push(newClient);
             
-            const newProject = generateRandomProject(newClient.id);
+            const newProject = generateRandomProject(newClient.id, date, currentFreelancers);
             currentProjects.push(newProject);
             
-            // Log activity (must use unshift to add to start)
             const logTime = new Date().toISOString();
             currentLogs.unshift({ id: uid(), message: `[AUTO] New client added: ${newClient.name} (${newClient.company})`, type: 'info', timestamp: logTime });
             currentLogs.unshift({ id: uid(), message: `[AUTO] New project added: ${newProject.service} for ${newClient.name}`, type: 'info', timestamp: logTime });
             
-            // Persist all
             saveData(LS_KEYS.clients, currentClients);
             saveData(LS_KEYS.projects, currentProjects);
             saveData(LS_KEYS.logs, currentLogs);
             localStorage.setItem(LS_KEYS.lastAutoAdd, now.toString());
             
-            return {
-                didRun: true,
-                clients: currentClients,
-                projects: currentProjects,
-                logs: currentLogs
-            };
+            return { didRun: true, clients: currentClients, projects: currentProjects, logs: currentLogs };
         }
-        
         return { didRun: false, clients, projects, logs };
     }
 
@@ -393,6 +570,7 @@
     const clientModal = document.getElementById('client-modal');
     const freelancerModal = document.getElementById('freelancer-modal');
     const projectModal = document.getElementById('project-modal');
+    const projectDetailsModal = document.getElementById('project-details-modal');
 
     // --- UI/UX HELPERS (Toasts, Modals, etc.) ---
     function showToast(message, type = 'success') {
@@ -408,14 +586,12 @@
         }, 3000);
     }
 
-    // Run auto-add check and update data if necessary
-    // We do this *before* defining the modal helpers, but *after* defining showToast
-    const autoAddResult = checkAndRunAutoAdd(clients, projects, logs);
+    // Run auto-add check *before* anything else
+    const autoAddResult = checkAndRunAutoAdd(clients, projects, logs, freelancers);
     if (autoAddResult.didRun) {
         clients = autoAddResult.clients;
         projects = autoAddResult.projects;
         logs = autoAddResult.logs;
-        // Show toast after a small delay to let the app finish loading
         setTimeout(() => showToast('New client activity simulated!', 'info'), 500);
     }
 
@@ -439,10 +615,7 @@
         const confirmBtn = document.getElementById('confirm-ok-btn');
         const cancelBtn = document.getElementById('confirm-cancel-btn');
 
-        const handleConfirm = () => {
-            onConfirm();
-            cleanup();
-        };
+        const handleConfirm = () => { onConfirm(); cleanup(); };
         const cleanup = () => {
             closeModal(confirmModal);
             confirmBtn.removeEventListener('click', handleConfirm);
@@ -451,6 +624,8 @@
         confirmBtn.addEventListener('click', handleConfirm, { once: true });
         cancelBtn.addEventListener('click', cleanup, { once: true });
     }
+    
+    // Close modal listeners
     document.querySelectorAll('[data-close-modal], #confirm-cancel-btn').forEach(el => {
         el.addEventListener('click', (e) => closeModal(e.target.closest('.modal')));
     });
@@ -535,13 +710,8 @@
         saveData(LS_KEYS.freelancers, freelancers);
         saveData(LS_KEYS.projects, projects);
     }
-    function renderCurrentPage() {
-        const activeSection = document.querySelector('.nav-link.active')?.dataset.section || 'dashboard';
-        renderPage(activeSection);
-    }
     
     // --- TEMPLATES & RENDER FUNCTIONS ---
-    
     const statusColors = {
         'New': 'bg-blue-900/50 text-blue-300 border border-blue-500/30',
         'In Progress': 'bg-yellow-900/50 text-yellow-300 border border-yellow-500/30',
@@ -550,14 +720,17 @@
         'Delivered': 'bg-teal-900/50 text-teal-300 border border-teal-500/30',
         'Completed': 'bg-gray-700 text-gray-400 border border-gray-600'
     };
-    
+    const priorityColors = { 'High': 'var(--priority-high)', 'Medium': 'var(--priority-medium)', 'Low': 'var(--priority-low)' };
+
+    // --- DASHBOARD ---
     function renderDashboardPage(container) {
         const totalRevenue = money(projects.reduce((s, p) => s + (Number(p.price) || 0), 0));
+        const outstandingRevenue = money(projects.filter(p => p.paymentStatus === 'Pending' || p.paymentStatus === 'Overdue').reduce((s, p) => s + (Number(p.price) || 0), 0));
         const activeProjects = projects.filter(p => p.status !== 'Completed').length;
         const totalClients = clients.length;
         
         container.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fadeIn">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fadeIn">
               <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700">
                 <div class="flex items-center justify-between">
                   <div><div class="text-sm text-gray-400">Total Revenue</div><div class="text-3xl font-bold text-white mt-1">${totalRevenue}</div></div>
@@ -566,69 +739,77 @@
               </div>
               <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700">
                 <div class="flex items-center justify-between">
+                  <div><div class="text-sm text-gray-400">Outstanding Revenue</div><div class="text-3xl font-bold text-yellow-400 mt-1">${outstandingRevenue}</div></div>
+                  <div class="p-3 bg-yellow-900/50 rounded-lg"><svg class="w-6 h-6 text-yellow-400" viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                </div>
+              </div>
+              <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700">
+                <div class="flex items-center justify-between">
                   <div><div class="text-sm text-gray-400">Active Projects</div><div class="text-3xl font-bold text-white mt-1">${activeProjects}</div></div>
-                  <div class="p-3 bg-yellow-900/50 rounded-lg"><svg class="w-6 h-6 text-yellow-400" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                  <div class="p-3 bg-indigo-900/50 rounded-lg"><svg class="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="1.5"/></svg></div>
                 </div>
               </div>
               <div class="bg-gray-900 rounded-2xl p-6 border border-gray-700">
                 <div class="flex items-center justify-between">
                   <div><div class="text-sm text-gray-400">Total Clients</div><div class="text-3xl font-bold text-white mt-1">${totalClients}</div></div>
-                  <div class="p-3 bg-indigo-900/50 rounded-lg"><svg class="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m8-10a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87" stroke="currentColor" stroke-width="1.5"/></svg></div>
+                  <div class="p-3 bg-teal-900/50 rounded-lg"><svg class="w-6 h-6 text-teal-400" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m8-10a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87" stroke="currentColor" stroke-width="1.5"/></svg></div>
                 </div>
               </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mt-8">
-              <div class="lg:col-span-3 bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn" style="animation-delay: 0.1s;">
-                <h3 class="font-semibold text-white mb-4">Recent Activity</h3>
-                <div id="recent-activity"></div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+              <div class="lg:col-span-1 bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn" style="animation-delay: 0.1s;">
+                <h3 class="font-semibold text-white mb-4">Nearing Deadline</h3>
+                <div id="dashboard-deadlines" class="space-y-3"></div>
               </div>
-              <div class="lg:col-span-2 bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn" style="animation-delay: 0.2s;">
-                <h3 class="font-semibold text-white mb-4">Projects by Status</h3>
-                <div id="status-chart" class="space-y-3"></div>
+              <div class="lg:col-span-1 bg-gray-900 rounded-2xl p-6 border border-red-500/30 animate-fadeIn" style="animation-delay: 0.2s;">
+                <h3 class="font-semibold text-red-400 mb-4">Overdue Projects</h3>
+                <div id="dashboard-overdue" class="space-y-3"></div>
+              </div>
+              <div class="lg:col-span-1 bg-gray-900 rounded-2xl p-6 border border-gray-700 animate-fadeIn" style="animation-delay: 0.3s;">
+                <h3 class="font-semibold text-white mb-4">Recent Activity</h3>
+                <div id="dashboard-activity" class="space-y-3"></div>
               </div>
             </div>`;
             
-        const recentActivityEl = document.getElementById('recent-activity');
-        const sortedProjects = [...projects].sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0,5);
-        if (sortedProjects.length === 0) {
-            recentActivityEl.innerHTML = '<div class="text-gray-500 py-3 text-center">No recent projects.</div>';
-        } else {
-            const ul = document.createElement('ul');
-            ul.className = 'space-y-3';
-            sortedProjects.forEach(p => {
-                const client = clients.find(c => c.id === p.clientId);
-                ul.innerHTML += `<li class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                    <div>
-                      <div class="font-medium text-gray-200">${escapeHtml(client?.name || '— Removed —')}</div>
-                      <div class="text-sm text-gray-400">${escapeHtml(p.service)}</div>
-                    </div>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${statusColors[p.status] || ''}">${p.status}</span>
-                </li>`;
-            });
-            recentActivityEl.appendChild(ul);
-        }
+        const today = new Date().toISOString().slice(0,10);
+        // Nearing Deadline
+        const deadlinesEl = document.getElementById('dashboard-deadlines');
+        const nearing = projects.filter(p => p.status !== 'Completed' && p.deadline && p.deadline >= today)
+                                .sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).slice(0,5);
+        if(nearing.length === 0) deadlinesEl.innerHTML = '<div class="text-gray-500 py-3 text-center text-sm">No upcoming deadlines.</div>';
+        else deadlinesEl.innerHTML = nearing.map(p => `
+          <div class="p-3 bg-gray-800/50 rounded-lg text-sm">
+            <div class="flex justify-between items-center">
+              <span class="font-medium text-gray-200">${escapeHtml(p.service)}</span>
+              <span class="text-yellow-400 font-semibold">${niceDate(p.deadline)}</span>
+            </div>
+            <div class="text-gray-400">${escapeHtml(clients.find(c => c.id === p.clientId)?.name || '...')}</div>
+          </div>`).join('');
 
-        const statusChartEl = document.getElementById('status-chart');
-        const statusCounts = projects.reduce((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {});
-        if (Object.keys(statusCounts).length === 0) {
-            statusChartEl.innerHTML = '<div class="text-gray-500 py-3 text-center">No project data for chart.</div>';
-        } else {
-            const total = projects.length;
-            Object.keys(statusColors).forEach(status => {
-                const count = statusCounts[status] || 0;
-                const percentage = total > 0 ? (count / total * 100).toFixed(1) : 0;
-                if(count > 0)
-                statusChartEl.innerHTML += `<div>
-                    <div class="flex justify-between items-center text-sm mb-1">
-                        <span class="font-medium text-gray-300">${status}</span>
-                        <span class="text-gray-400">${count} (${percentage}%)</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div class="${(statusColors[status] || '').split(' ')[0]} h-2 rounded-full" style="width: ${percentage}%"></div>
-                    </div>
-                </div>`;
-            });
-        }
+        // Overdue
+        const overdueEl = document.getElementById('dashboard-overdue');
+        const overdue = projects.filter(p => p.status !== 'Completed' && p.deadline && p.deadline < today)
+                                .sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).slice(0,5);
+        if(overdue.length === 0) overdueEl.innerHTML = '<div class="text-gray-500 py-3 text-center text-sm">No overdue projects!</div>';
+        else overdueEl.innerHTML = overdue.map(p => `
+          <div class="p-3 bg-gray-800/50 rounded-lg text-sm">
+            <div class="flex justify-between items-center">
+              <span class="font-medium text-gray-200">${escapeHtml(p.service)}</span>
+              <span class="text-red-400 font-semibold">${niceDate(p.deadline)}</span>
+            </div>
+            <div class="text-gray-400">${escapeHtml(clients.find(c => c.id === p.clientId)?.name || '...')}</div>
+          </div>`).join('');
+
+        // Recent Activity (Logs)
+        const activityEl = document.getElementById('dashboard-activity');
+        const recentLogs = logs.slice(0, 5);
+        if (recentLogs.length === 0) activityEl.innerHTML = '<div class="text-gray-500 py-3 text-center text-sm">No recent activity.</div>';
+        else activityEl.innerHTML = recentLogs.map(log => `
+          <div class="p-3 bg-gray-800/50 rounded-lg text-sm">
+            <div class="text-gray-300">${escapeHtml(log.message)}</div>
+            <div class="text-gray-500 text-xs mt-1">${new Date(log.timestamp).toLocaleString()}</div>
+          </div>`).join('');
     }
     
     // --- PROJECTS ---
@@ -642,12 +823,13 @@
               <table class="w-full text-sm text-left responsive-table">
                 <thead class="text-gray-400 md:border-b md:border-gray-700">
                   <tr>
-                    <th class="p-3 table-header-sortable" data-sort="clientName">Client ⇅</th>
-                    <th class="p-3 table-header-sortable" data-sort="service">Service ⇅</th>
+                    <th class="p-3">Priority</th>
+                    <th class="p-3 table-header-sortable" data-sort="service">Project / Client ⇅</th>
                     <th class="p-3">Freelancer</th>
                     <th class="p-3 table-header-sortable" data-sort="price">Price ⇅</th>
+                    <th class="p-3">Payment</th>
                     <th class="p-3">Status</th>
-                    <th class="p-3 table-header-sortable" data-sort="dateAdded">Date Added ⇅</th>
+                    <th class="p-3 table-header-sortable" data-sort="deadline">Deadline ⇅</th>
                     <th class="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -658,6 +840,8 @@
             const form = projectModal.querySelector('form');
             form.reset();
             form['project-id'].value = '';
+            form['project-priority'].value = 'Medium';
+            form['project-payment-status'].value = 'Pending';
             document.getElementById('project-modal-title').textContent = 'Add Project';
             fillProjectFormOptions();
             openModal(projectModal);
@@ -685,15 +869,15 @@
         const tbody = document.getElementById('projects-tbody');
         tbody.innerHTML = '';
         const sorted = [...filteredProjects].sort((a, b) => {
-            const valA = sortState.key === 'clientName' ? (clients.find(c => c.id === a.clientId)?.name || '') : a[sortState.key];
-            const valB = sortState.key === 'clientName' ? (clients.find(c => c.id === b.clientId)?.name || '') : b[sortState.key];
+            const valA = a[sortState.key];
+            const valB = b[sortState.key];
             if (valA < valB) return sortState.direction === 'asc' ? -1 : 1;
             if (valA > valB) return sortState.direction === 'asc' ? 1 : -1;
             return 0;
         });
         
         if (sorted.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">No projects found.</td></tr>`; return;
+            tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-500">No projects found.</td></tr>`; return;
         }
 
         sorted.forEach(p => {
@@ -702,12 +886,16 @@
             const tr = document.createElement('tr');
             tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
             tr.innerHTML = `
-                <td data-label="Client" class="p-3 font-medium">${escapeHtml(client?.name || '— Removed —')}</td>
-                <td data-label="Service" class="p-3 text-gray-300">${escapeHtml(p.service)}</td>
+                <td data-label="Priority" class="p-3"><div class="priority-dot" style="background-color: ${priorityColors[p.priority]}"></div></td>
+                <td data-label="Project / Client" class="p-3">
+                  <button data-id="${p.id}" class="open-project-details font-medium text-left hover:text-indigo-400 transition">${escapeHtml(p.service)}</button>
+                  <div class="text-gray-400">${escapeHtml(client?.name || '— Removed —')}</div>
+                </td>
                 <td data-label="Freelancer" class="p-3 text-gray-400">${escapeHtml(freelancer?.name || '— Unassigned —')}</td>
                 <td data-label="Price" class="p-3 text-gray-300">${money(p.price)}</td>
+                <td data-label="Payment" class="p-3"><span class="payment-tag ${p.paymentStatus?.toLowerCase()}">${p.paymentStatus}</span></td>
                 <td data-label="Status" class="p-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${statusColors[p.status] || ''}">${p.status}</span></td>
-                <td data-label="Date Added" class="p-3 text-gray-400">${new Date(p.dateAdded).toLocaleDateString()}</td>
+                <td data-label="Deadline" class="p-3 text-gray-400">${niceDate(p.deadline)}</td>
                 <td data-label="Actions" class="p-3 text-right">
                   <div class="flex gap-2 justify-end actions-cell">
                     <button data-id="${p.id}" class="edit-project px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
@@ -717,6 +905,10 @@
             tbody.appendChild(tr);
         });
         
+        tbody.querySelectorAll('.open-project-details').forEach(btn => btn.addEventListener('click', (e) => {
+            openProjectDetails(e.target.dataset.id);
+        }));
+        
         tbody.querySelectorAll('.edit-project').forEach(btn => btn.addEventListener('click', (e) => {
             const p = projects.find(x => x.id === e.target.dataset.id);
             if (!p) return showToast('Project not found.', 'error');
@@ -724,9 +916,15 @@
             form.reset();
             document.getElementById('project-modal-title').textContent = 'Edit Project';
             fillProjectFormOptions();
-            form['project-id'].value = p.id; form['project-client'].value = p.clientId || ''; form['project-freelancer'].value = p.freelancerId || '';
-            form['project-service'].value = p.service; form['project-price'].value = p.price; form['project-status'].value = p.status;
-            form['project-date'].value = new Date(p.dateAdded).toISOString().slice(0,10);
+            form['project-id'].value = p.id;
+            form['project-client'].value = p.clientId || '';
+            form['project-freelancer'].value = p.freelancerId || '';
+            form['project-service'].value = p.service;
+            form['project-price'].value = p.price;
+            form['project-status'].value = p.status;
+            form['project-payment-status'].value = p.paymentStatus;
+            form['project-priority'].value = p.priority;
+            form['project-deadline'].value = formatDate(p.deadline);
             openModal(projectModal);
         }));
         
@@ -750,9 +948,15 @@
         const clientSelect = document.getElementById('project-client');
         clientSelect.innerHTML = '<option value="">— Select client —</option>';
         clients.forEach(c => clientSelect.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)} • ${escapeHtml(c.company)}</option>`);
-        const freelancerSelect = document.getElementById('project-freelancer');
-        freelancerSelect.innerHTML = '<option value="">— Unassigned —</option>';
-        freelancers.forEach(f => freelancerSelect.innerHTML += `<option value="${f.id}">${escapeHtml(f.name)}</option>`);
+        
+        const freelancerSelects = [
+            document.getElementById('project-freelancer'),
+            document.getElementById('project-details-freelancer')
+        ];
+        freelancerSelects.forEach(select => {
+            select.innerHTML = '<option value="">— Unassigned —</option>';
+            freelancers.forEach(f => select.innerHTML += `<option value="${f.id}">${escapeHtml(f.name)}</option>`);
+        });
     }
     
     projectModal.querySelector('form').addEventListener('submit', (e) => {
@@ -760,9 +964,14 @@
         const form = e.target;
         const id = form['project-id'].value;
         const projectData = {
-            clientId: form['project-client'].value, freelancerId: form['project-freelancer'].value, service: form['project-service'].value.trim(),
-            price: parseFloat(form['project-price'].value) || 0, status: form['project-status'].value,
-            dateAdded: form['project-date'].value ? new Date(form['project-date'].value).toISOString() : new Date().toISOString(),
+            clientId: form['project-client'].value,
+            freelancerId: form['project-freelancer'].value,
+            service: form['project-service'].value.trim(),
+            price: parseFloat(form['project-price'].value) || 0,
+            status: form['project-status'].value,
+            paymentStatus: form['project-payment-status'].value,
+            priority: form['project-priority'].value,
+            deadline: form['project-deadline'].value ? new Date(form['project-deadline'].value).toISOString() : '',
         };
         if (!projectData.clientId || !projectData.service) return showToast('Client and Service are required.', 'error');
         
@@ -771,7 +980,7 @@
             if (idx > -1) projects[idx] = { ...projects[idx], ...projectData };
             logActivity(`Updated project: ${projectData.service}`);
         } else {
-            projects.push({ id: uid(), ...projectData });
+            projects.push({ ...newProjectDefaults(), id: uid(), dateAdded: new Date().toISOString(), ...projectData });
             logActivity(`Created new project: ${projectData.service}`);
         }
         persistAll();
@@ -779,6 +988,142 @@
         closeModal(projectModal);
         showToast(`Project ${id ? 'updated' : 'saved'} successfully!`);
     });
+
+    // --- PROJECT DETAILS MODAL ---
+    function openProjectDetails(projectId) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project) return showToast('Could not find project details.', 'error');
+        
+        currentProjectDetailsId = projectId; // Set global tracker
+        
+        const client = clients.find(c => c.id === project.clientId);
+        document.getElementById('project-details-title').textContent = project.service;
+        document.getElementById('project-details-client').textContent = `for ${client?.name || 'Unknown Client'}`;
+        
+        // Fill form fields
+        document.getElementById('project-details-status').value = project.status;
+        document.getElementById('project-details-freelancer').value = project.freelancerId || '';
+        document.getElementById('project-details-priority').value = project.priority;
+        document.getElementById('project-details-payment-status').value = project.paymentStatus;
+        document.getElementById('project-details-price').value = project.price;
+        document.getElementById('project-details-deadline').value = formatDate(project.deadline);
+        document.getElementById('project-details-brief').value = project.brief;
+
+        fillProjectFormOptions(); // Ensure freelancer dropdown is populated
+        renderProjectDetailsSubtasks(project);
+        renderProjectDetailsNotes(project);
+        openModal(projectDetailsModal);
+    }
+
+    function renderProjectDetailsSubtasks(project) {
+        const listEl = document.getElementById('project-details-subtasks-list');
+        listEl.innerHTML = '';
+        if (!project.subtasks || project.subtasks.length === 0) {
+            listEl.innerHTML = '<li class="text-sm text-gray-500 text-center py-2">No sub-tasks added.</li>';
+            return;
+        }
+        project.subtasks.forEach(task => {
+            const li = document.createElement('li');
+            li.className = 'subtask-list-item flex items-center justify-between p-2 bg-gray-800/60 rounded-md';
+            li.innerHTML = `
+              <label class="flex-1 flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" data-task-id="${task.id}" class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-indigo-600 focus:ring-indigo-500" ${task.done ? 'checked' : ''}>
+                <span class="text-gray-300">${escapeHtml(task.text)}</span>
+              </label>
+              <button data-task-id="${task.id}" class="delete-subtask text-gray-500 hover:text-red-400 text-lg">&times;</button>
+            `;
+            listEl.appendChild(li);
+        });
+    }
+
+    function renderProjectDetailsNotes(project) {
+        const listEl = document.getElementById('project-details-notes-list');
+        listEl.innerHTML = '';
+        if (!project.notes || project.notes.length === 0) {
+            listEl.innerHTML = '<li class="text-sm text-gray-500 text-center py-2">No notes added.</li>';
+            return;
+        }
+        [...project.notes].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(note => {
+            const li = document.createElement('li');
+            li.className = 'text-sm p-3 bg-gray-800/60 rounded-md';
+            li.innerHTML = `
+              <p class="text-gray-300 whitespace-pre-wrap">${escapeHtml(note.text)}</p>
+              <div class="text-gray-500 text-xs mt-2">${new Date(note.timestamp).toLocaleString()}</div>
+            `;
+            listEl.appendChild(li);
+        });
+    }
+
+    // --- Project Details Event Listeners ---
+    document.getElementById('project-details-add-task-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const project = projects.find(p => p.id === currentProjectDetailsId);
+        if (!project) return;
+        const input = document.getElementById('project-details-new-task-text');
+        const text = input.value.trim();
+        if (text) {
+            project.subtasks.push({ id: uid(), text, done: false });
+            input.value = '';
+            renderProjectDetailsSubtasks(project);
+            persistAll();
+        }
+    });
+
+    document.getElementById('project-details-subtasks-list').addEventListener('click', (e) => {
+        const project = projects.find(p => p.id === currentProjectDetailsId);
+        if (!project) return;
+        // Check/uncheck task
+        if (e.target.matches('input[type="checkbox"]')) {
+            const taskId = e.target.dataset.taskId;
+            const task = project.subtasks.find(t => t.id === taskId);
+            if (task) {
+                task.done = e.target.checked;
+                persistAll();
+                renderProjectDetailsSubtasks(project); // Re-render to show strikethrough
+            }
+        }
+        // Delete task
+        if (e.target.matches('.delete-subtask')) {
+            const taskId = e.target.dataset.taskId;
+            project.subtasks = project.subtasks.filter(t => t.id !== taskId);
+            persistAll();
+            renderProjectDetailsSubtasks(project);
+        }
+    });
+
+    document.getElementById('project-details-add-note-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const project = projects.find(p => p.id === currentProjectDetailsId);
+        if (!project) return;
+        const input = document.getElementById('project-details-new-note-text');
+        const text = input.value.trim();
+        if (text) {
+            project.notes.push({ id: uid(), text, timestamp: new Date().toISOString() });
+            input.value = '';
+            renderProjectDetailsNotes(project);
+            persistAll();
+        }
+    });
+
+    document.getElementById('project-details-save-btn').addEventListener('click', () => {
+        const project = projects.find(p => p.id === currentProjectDetailsId);
+        if (!project) return showToast('Error saving project.', 'error');
+        
+        project.status = document.getElementById('project-details-status').value;
+        project.freelancerId = document.getElementById('project-details-freelancer').value;
+        project.priority = document.getElementById('project-details-priority').value;
+        project.paymentStatus = document.getElementById('project-details-payment-status').value;
+        project.price = parseFloat(document.getElementById('project-details-price').value) || 0;
+        project.deadline = document.getElementById('project-details-deadline').value ? new Date(document.getElementById('project-details-deadline').value).toISOString() : '';
+        project.brief = document.getElementById('project-details-brief').value;
+        
+        persistAll();
+        logActivity(`Updated details for project: ${project.service}`);
+        showToast('Project details saved!', 'success');
+        closeModal(projectDetailsModal);
+        renderProjects(); // Refresh table
+    });
+
 
     // --- CLIENTS ---
     function renderClientsPage(container) {
@@ -790,7 +1135,7 @@
             <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
               <table class="w-full text-sm text-left responsive-table">
                 <thead class="text-gray-400 md:border-b md:border-gray-700"><tr>
-                    <th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Company</th><th class="p-3 text-right">Actions</th>
+                    <th class="p-3">Name</th><th class="p-3">Company</th><th class="p-3">Contact</th><th class="p-3">Joined On</th><th class="p-3 text-right">Actions</th>
                 </tr></thead>
                 <tbody id="clients-tbody" class="md:divide-y md:divide-gray-700"></tbody>
               </table>
@@ -814,15 +1159,24 @@
         const tbody = document.getElementById('clients-tbody');
         tbody.innerHTML = '';
         if (filteredClients.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No clients found.</td></tr>`; return;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No clients found.</td></tr>`; return;
         }
         filteredClients.forEach(c => {
             const tr = document.createElement('tr');
             tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
             tr.innerHTML = `
-                <td data-label="Name" class="p-3 font-medium">${escapeHtml(c.name)}</td>
-                <td data-label="Email" class="p-3 text-gray-400">${escapeHtml(c.email)}</td>
+                <td data-label="Name" class="p-3">
+                  <div class="flex items-center gap-3 avatar-cell">
+                    <img src="${getAvatar(c.email || c.id)}" alt="avatar" class="w-8 h-8 rounded-full" />
+                    <span class="font-medium">${escapeHtml(c.name)}</span>
+                  </div>
+                </td>
                 <td data-label="Company" class="p-3 text-gray-400">${escapeHtml(c.company)}</td>
+                <td data-label="Contact" class="p-3">
+                  <div class="text-gray-300">${escapeHtml(c.email)}</div>
+                  <div class="text-gray-400">${escapeHtml(c.phone)}</div>
+                </td>
+                <td data-label="Joined On" class="p-3 text-gray-400">${niceDate(c.dateJoined)}</td>
                 <td data-label="Actions" class="p-3 text-right">
                   <div class="flex gap-2 justify-end actions-cell">
                     <button data-id="${c.id}" class="edit-client px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
@@ -837,8 +1191,11 @@
             const form = clientModal.querySelector('form');
             form.reset();
             document.getElementById('client-modal-title').textContent = 'Edit Client';
-            form['client-id'].value = client.id; form['client-name'].value = client.name;
-            form['client-email'].value = client.email; form['client-company'].value = client.company;
+            form['client-id'].value = client.id;
+            form['client-name'].value = client.name;
+            form['client-email'].value = client.email;
+            form['client-company'].value = client.company;
+            form['client-phone'].value = client.phone;
             openModal(clientModal);
         }));
         tbody.querySelectorAll('.delete-client').forEach(btn => btn.addEventListener('click', (e) => {
@@ -865,14 +1222,17 @@
         const form = e.target;
         const id = form['client-id'].value;
         const clientData = {
-            name: form['client-name'].value.trim(), email: form['client-email'].value.trim(), company: form['client-company'].value.trim(),
+            name: form['client-name'].value.trim(),
+            email: form['client-email'].value.trim(),
+            company: form['client-company'].value.trim(),
+            phone: form['client-phone'].value.trim()
         };
         if (id) {
             const idx = clients.findIndex(c => c.id === id);
             if (idx > -1) clients[idx] = { ...clients[idx], ...clientData };
             logActivity(`Updated client: ${clientData.name}`);
         } else {
-            clients.push({ id: uid(), ...clientData });
+            clients.push({ ...newClientDefaults(), id: uid(), ...clientData });
             logActivity(`Created new client: ${clientData.name}`);
         }
         persistAll();
@@ -891,7 +1251,7 @@
             <div class="bg-gray-900 rounded-2xl md:p-4 border border-gray-700 overflow-x-auto">
               <table class="w-full text-sm text-left responsive-table">
                 <thead class="text-gray-400 md:border-b md:border-gray-700">
-                  <tr><th class="p-3">Name</th><th class="p-3 text-right">Actions</th></tr>
+                  <tr><th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Specialty</th><th class="p-3 text-right">Actions</th></tr>
                 </thead>
                 <tbody id="freelancers-tbody" class="md:divide-y md:divide-gray-700"></tbody>
               </table>
@@ -915,13 +1275,20 @@
         const tbody = document.getElementById('freelancers-tbody');
         tbody.innerHTML = '';
         if (filteredFreelancers.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-gray-500">No freelancers found.</td></tr>`; return;
+            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No freelancers found.</td></tr>`; return;
         }
         filteredFreelancers.forEach(f => {
             const tr = document.createElement('tr');
             tr.className = 'md:hover:bg-gray-800/50 animate-fadeIn';
             tr.innerHTML = `
-                <td data-label="Name" class="p-3 font-medium">${escapeHtml(f.name)}</td>
+                <td data-label="Name" class="p-3">
+                  <div class="flex items-center gap-3 avatar-cell">
+                    <img src="${getAvatar(f.email || f.id)}" alt="avatar" class="w-8 h-8 rounded-full" />
+                    <span class="font-medium">${escapeHtml(f.name)}</span>
+                  </div>
+                </td>
+                <td data-label="Email" class="p-3 text-gray-400">${escapeHtml(f.email)}</td>
+                <td data-label="Specialty" class="p-3 text-gray-400">${escapeHtml(f.specialty)}</td>
                 <td data-label="Actions" class="p-3 text-right">
                     <div class="flex gap-2 justify-end actions-cell">
                         <button data-id="${f.id}" class="edit-freelancer px-3 py-1.5 bg-yellow-600/20 text-yellow-300 rounded-md text-xs font-semibold hover:bg-yellow-600/40">Edit</button>
@@ -938,6 +1305,8 @@
             document.getElementById('freelancer-modal-title').textContent = 'Edit Freelancer';
             form['freelancer-id'].value = f.id;
             form['freelancer-name'].value = f.name;
+            form['freelancer-email'].value = f.email;
+            form['freelancer-specialty'].value = f.specialty;
             openModal(freelancerModal);
         }));
         tbody.querySelectorAll('.delete-freelancer').forEach(btn => btn.addEventListener('click', (e) => {
@@ -962,14 +1331,18 @@
         e.preventDefault();
         const form = e.target;
         const id = form['freelancer-id'].value;
-        const name = form['freelancer-name'].value.trim();
+        const freelancerData = {
+            name: form['freelancer-name'].value.trim(),
+            email: form['freelancer-email'].value.trim(),
+            specialty: form['freelancer-specialty'].value.trim()
+        };
         if (id) {
             const idx = freelancers.findIndex(f => f.id === id);
-            if (idx > -1) freelancers[idx].name = name;
-            logActivity(`Updated freelancer: ${name}`);
+            if (idx > -1) freelancers[idx] = { ...freelancers[idx], ...freelancerData };
+            logActivity(`Updated freelancer: ${freelancerData.name}`);
         } else {
-            freelancers.push({ id: uid(), name });
-            logActivity(`Created new freelancer: ${name}`);
+            freelancers.push({ ...newFreelancerDefaults(), id: uid(), ...freelancerData });
+            logActivity(`Created new freelancer: ${freelancerData.name}`);
         }
         persistAll();
         renderFreelancers();
@@ -997,14 +1370,17 @@
                 const client = clients.find(c => c.id === p.clientId);
                 const freelancer = freelancers.find(f => f.id === p.freelancerId);
                 return {
-                    ID: p.id,
+                    ProjectID: p.id,
                     ClientName: client?.name || 'N/A',
                     ClientCompany: client?.company || 'N/A',
                     Service: p.service,
                     Price: p.price,
                     Status: p.status,
+                    PaymentStatus: p.paymentStatus,
+                    Priority: p.priority,
                     Freelancer: freelancer?.name || 'Unassigned',
-                    DateAdded: new Date(p.dateAdded).toLocaleDateString()
+                    DateAdded: niceDate(p.dateAdded),
+                    Deadline: niceDate(p.deadline)
                 };
             });
             downloadCSV(dataToExport, 'projects_report.csv');
@@ -1013,12 +1389,26 @@
         });
 
         document.getElementById('dl-clients-csv').addEventListener('click', () => {
-            downloadCSV(clients, 'clients_report.csv');
+            const dataToExport = clients.map(c => ({
+                ClientID: c.id,
+                Name: c.name,
+                Company: c.company,
+                Email: c.email,
+                Phone: c.phone,
+                DateJoined: niceDate(c.dateJoined)
+            }));
+            downloadCSV(dataToExport, 'clients_report.csv');
             logActivity('Downloaded clients report');
             showToast('Clients report generated!');
         });
         document.getElementById('dl-freelancers-csv').addEventListener('click', () => {
-            downloadCSV(freelancers, 'freelancers_report.csv');
+            const dataToExport = freelancers.map(f => ({
+                FreelancerID: f.id,
+                Name: f.name,
+                Email: f.email,
+                Specialty: f.specialty
+            }));
+            downloadCSV(dataToExport, 'freelancers_report.csv');
             logActivity('Downloaded freelancers report');
             showToast('Freelancers report generated!');
         });
